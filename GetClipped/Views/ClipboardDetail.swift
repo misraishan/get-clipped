@@ -10,46 +10,71 @@ import SwiftUI
 struct ClipboardDetail: View
 {
     let item: ClipboardItem
-    
-    private func copyToClipboard(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-    }
+    @EnvironmentObject var clipboardActions: ClipboardActions
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text("Content:")
-                .font(.headline)
-            ScrollView {
-                Text(item.content)
-                    .padding()
-                    .background(Color.gray.opacity(0.1))
-                    .cornerRadius(8)
+        VStack(alignment: .leading, spacing: 16) {
+            // Header with icon and type
+            HStack(spacing: 12) {
+                ClipboardItemIconView(item: item.icon)
+
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(item.itemType + " Item")
+                        .font(.headline)
+                    Text("Copied at \(item.timeString)")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
+                
+                Spacer()
             }
-            Text("Copied at: \(item.timeString)")
-                .font(.subheadline)
-                .foregroundColor(.secondary)
+            
+            Divider()
+            
+            // Content section
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Content")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                
+                ScrollView {
+                    Text(item.content)
+                        .font(.body)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color(.textBackgroundColor))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.separatorColor), lineWidth: 1)
+                        )
+                }
+            }
+            
             Spacer()
         }
-        .padding()
+        .padding(20)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
         .toolbar {
-            ToolbarItem {
-                Button(action: {
-                    copyToClipboard(item.content)
-                }) {
-                    Label("Copy to Clipboard", systemImage: "doc.on.doc")
+            ToolbarItem(placement: .primaryAction) {
+                HStack(spacing: 8) {
+                    Button(action: {
+                        clipboardActions.copyToClipboard(item.content)
+                    }) {
+                        Label("Copy", systemImage: "doc.on.doc")
+                    }
+                    .buttonStyle(.borderedProminent)
+                    
+                    Button(action: {
+                        clipboardActions.deleteItem(item)
+                    }) {
+                        Label("Delete", systemImage: "trash")
+                    }
+                    .buttonStyle(.bordered)
+                    .foregroundColor(.red)
                 }
             }
-        
-            ToolbarItem {
-                Button(action: {
-                    // Delete action placeholder
-                }) {
-                    Label("Delete Item", systemImage: "trash")
-                }
-            }
-
         }
     }
 }

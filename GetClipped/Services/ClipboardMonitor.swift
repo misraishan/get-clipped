@@ -42,20 +42,21 @@ class ClipboardMonitor: ObservableObject {
             
             // Get the clipboard content
             if let string = pasteboard.string(forType: .string), !string.isEmpty {
+                var itemType = ClipboardItem.ClipboardItemType.text
+                
+                if (string.isValidURL) {
+                    itemType = .link
+                }
+
                 let newItem = ClipboardItem(
                     content: string,
                     timestamp: Date(),
-                    type: .text
+                    type: itemType
                 )
                 
                 // Add to beginning of array, avoid duplicates
                 if clipboardItems.first?.content != string {
                     clipboardItems.insert(newItem, at: 0)
-                    
-                    // Keep only last 50 items
-                    if clipboardItems.count > 50 {
-                        clipboardItems.removeLast()
-                    }
                 }
             }
         }

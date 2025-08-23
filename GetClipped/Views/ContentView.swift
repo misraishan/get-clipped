@@ -10,19 +10,30 @@ import SwiftData
 
 struct ContentView: View {
     @EnvironmentObject var clipboardMonitor: ClipboardMonitor
+    @StateObject private var clipboardActions: ClipboardActions
     @State private var selectedItem: ClipboardItem?
     @State private var searchText = ""
     
     let windowWidth = NSScreen.main?.visibleFrame.width ?? 800
 
+    init() {
+        self._clipboardActions = StateObject(wrappedValue: ClipboardActions(clipboardMonitor: ClipboardMonitor()))
+    }
+
     var body: some View {
         NavigationSplitView {
-            List(filteredItems) { item in
-                ClipboardItemRow(item: item)
+            List(filteredItems, selection: $selectedItem) { item in
+                ClipboardItemRow(item: item, isSelected: selectedItem?.id == item.id)
+                    .id(item.id)
+                    .contentShape(Rectangle())
+                    .listRowInsets(EdgeInsets())
+                    .listRowSeparator(.hidden)
+                    .animation(.easeInOut(duration: 0.15), value: selectedItem?.id)
                     .onTapGesture {
                         selectedItem = item
                     }
             }
+            .listStyle(.sidebar)
             .searchable(text: $searchText)
             .navigationTitle("Clipboard History")
             .navigationSplitViewStyle(.balanced)
@@ -31,22 +42,25 @@ struct ContentView: View {
                     Button(action: addItem) {
                         Label("Add Item", systemImage: "plus")
                     }
+                    .onTapGesture(perform: addItem)
                 }
             }
         } detail: {
             if let selectedItem {
                 ClipboardDetail(item: selectedItem)
+                    .environmentObject(clipboardActions)
+                    .id(selectedItem.id)
             } else {
                 Text("Select an item to view details")
                     .foregroundStyle(.secondary)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
     }
 
     private func addItem() {
         withAnimation {
-            let newItem = ClipboardItem(content: "New Clipboard Item", timestamp: Date(), type: .text)
-            clipboardMonitor.clipboardItems.insert(newItem, at: 0)
+            clipboardActions.addItem()
         }
     }
     
