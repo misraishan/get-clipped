@@ -10,6 +10,8 @@ import SwiftData
 
 @main
 struct GetClippedApp: App {
+    @StateObject private var clipboardMonitor = ClipboardMonitor()
+
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
             Item.self,
@@ -22,11 +24,13 @@ struct GetClippedApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-
+    
     var body: some Scene {
         WindowGroup {
             ContentView()
+                .environmentObject(clipboardMonitor)
         }
+        .windowResizability(.contentSize)
         .modelContainer(sharedModelContainer)
     }
 }
