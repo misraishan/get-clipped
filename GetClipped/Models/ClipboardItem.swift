@@ -8,14 +8,24 @@
 
 import Foundation
 import SwiftUICore
+import SwiftData
 
-struct ClipboardItem: Identifiable, Hashable {
-    let id = UUID()
-    let content: String
-    let timestamp: Date
-    let type: ClipboardItemType
+@Model
+class ClipboardItem: Identifiable, Hashable {
+    var id: String
+    var content: String
+    var timestamp: Date
+    var type: ClipboardItemType
     
-    enum ClipboardItemType: String {
+    init(content: String, timestamp: Date, type: ClipboardItemType) {
+        self.id = UUID().uuidString
+
+        self.content = content
+        self.timestamp = timestamp
+        self.type = type
+    }
+    
+    enum ClipboardItemType: String, Codable {
         case text = "Text"
         case image = "Image"
         case link = "Link"
@@ -52,13 +62,5 @@ extension ClipboardItem {
     
     var itemType: String {
         return type.rawValue
-    }
-    
-    static func detectType(from content: String) -> ClipboardItemType {
-        if content.hasPrefix("http://") || content.hasPrefix("https://") || content.hasPrefix("www.") {
-            return .link
-        }
-        // Add more detection logic as needed
-        return .text
     }
 }

@@ -9,16 +9,17 @@ import SwiftUI
 import SwiftData
 
 struct ContentView: View {
-    @EnvironmentObject var clipboardMonitor: ClipboardMonitor
-    @StateObject private var clipboardActions: ClipboardActions
+    @Environment(\.modelContext) private var modelContext
+    
+    @State private var clipboardMonitor: ClipboardMonitor?
+    @State private var clipboardActions: ClipboardActions?
     @State private var selectedItem: ClipboardItem?
     @State private var searchText = ""
     
+    @Query(sort: [SortDescriptor(\ClipboardItem.timestamp, order: .reverse)])
+        private var clipboardItems: [ClipboardItem]
+    
     let windowWidth = NSScreen.main?.visibleFrame.width ?? 800
-
-    init() {
-        self._clipboardActions = StateObject(wrappedValue: ClipboardActions(clipboardMonitor: ClipboardMonitor()))
-    }
 
     var body: some View {
         NavigationSplitView {
@@ -42,13 +43,12 @@ struct ContentView: View {
                     Button(action: addItem) {
                         Label("Add Item", systemImage: "plus")
                     }
-                    .onTapGesture(perform: addItem)
                 }
             }
         } detail: {
             if let selectedItem {
                 ClipboardDetail(item: selectedItem)
-                    .environmentObject(clipboardActions)
+                    .environmentObject(clipboardActions ?? ClipboardActions(clipboardMonitor: ClipboardMonitor(modelContext: modelContext), modelContext: modelContext))
                     .id(selectedItem.id)
             } else {
                 Text("Select an item to view details")
@@ -56,19 +56,28 @@ struct ContentView: View {
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
             }
         }
+        .onAppear {
+            if clipboardMonitor == nil {
+                let monitor = ClipboardMonitor(modelContext: modelContext)
+                clipboardMonitor = monitor
+                clipboardActions = ClipboardActions(clipboardMonitor: monitor, modelContext: modelContext)
+            }
+        }
     }
 
     private func addItem() {
         withAnimation {
-            clipboardActions.addItem()
+            clipboardActions?.addItem()
         }
     }
     
     var filteredItems: [ClipboardItem] {
+        guard clipboardMonitor != nil else { return [] }
+        
         if searchText.isEmpty {
-            return clipboardMonitor.clipboardItems
+            return clipboardItems
         } else {
-            return clipboardMonitor.clipboardItems.filter {
+            return clipboardItems.filter {
                 $0.content.localizedCaseInsensitiveContains(searchText)
             }
         }
@@ -77,5 +86,5 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .environmentObject(ClipboardMonitor())
+        .modelContainer(for: ClipboardItem.self)
 }

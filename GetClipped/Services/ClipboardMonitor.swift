@@ -7,14 +7,17 @@
 
 import Foundation
 import AppKit
+import SwiftUICore
+import SwiftData
 
 class ClipboardMonitor: ObservableObject {
-    @Published var clipboardItems: [ClipboardItem] = []
+    private let modelContext: ModelContext
     
     private var timer: Timer?
     private var lastChangeCount = NSPasteboard.general.changeCount
 
-    init() {
+    init(modelContext: ModelContext) {
+        self.modelContext = modelContext
         startMonitoring()
     }
 
@@ -54,9 +57,20 @@ class ClipboardMonitor: ObservableObject {
                     type: itemType
                 )
                 
-                // Add to beginning of array, avoid duplicates
-                if clipboardItems.first?.content != string {
-                    clipboardItems.insert(newItem, at: 0)
+                // Check for duplicates by fetching the most recent item
+                do {
+                    var descriptor = FetchDescriptor<ClipboardItem>(
+                        sortBy: [SortDescriptor(\.timestamp, order: .reverse)]
+                    )
+                    descriptor.fetchLimit = 1
+                    let mostRecent = try modelContext.fetch(descriptor).first
+                    
+                    if mostRecent?.content != string {
+                        modelContext.insert(newItem)
+                        try modelContext.save() // Force save to trigger UI updates
+                    }
+                } catch {
+                    print("Error checking/saving clipboard item: \(error)")
                 }
             }
         }

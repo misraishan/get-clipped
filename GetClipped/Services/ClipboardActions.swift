@@ -7,12 +7,15 @@
 
 import Foundation
 import AppKit
+import SwiftData
 
 class ClipboardActions: ObservableObject {
-    let clipboardMonitor: ClipboardMonitor
+    var clipboardMonitor: ClipboardMonitor
+    private let modelContext: ModelContext
     
-    init(clipboardMonitor: ClipboardMonitor) {
+    init(clipboardMonitor: ClipboardMonitor, modelContext: ModelContext) {
         self.clipboardMonitor = clipboardMonitor
+        self.modelContext = modelContext
     }
     
     func addItem(content: String = "New Clipboard Item", type: ClipboardItem.ClipboardItemType = .text) {
@@ -21,7 +24,7 @@ class ClipboardActions: ObservableObject {
             timestamp: Date(),
             type: type
         )
-        clipboardMonitor.clipboardItems.insert(newItem, at: 0)
+        modelContext.insert(newItem)
     }
     
     func copyToClipboard(_ text: String) {
@@ -31,10 +34,10 @@ class ClipboardActions: ObservableObject {
     }
     
     func deleteItem(_ item: ClipboardItem) {
-        clipboardMonitor.clipboardItems.removeAll { $0.id == item.id }
+        modelContext.delete(item)
     }
     
     func clearHistory() {
-        clipboardMonitor.clipboardItems.removeAll()
+        try? modelContext.delete(model: ClipboardItem.self)
     }
 }
