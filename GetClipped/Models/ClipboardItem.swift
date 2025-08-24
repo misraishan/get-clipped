@@ -36,31 +36,3 @@ struct ClipboardItemIcon {
     let icon: String
     let color: Color
 }
-
-extension ClipboardItem {
-    var timeString: String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.dateStyle = .none
-        return formatter.string(from: timestamp)
-    }
-    
-    var preview: String {
-        String(content.prefix(50)) + (content.count > 50 ? "..." : "")
-    }
-    
-    var icon: ClipboardItemIcon {
-        switch type {
-        case .text:
-            return .init(icon: "doc.text", color: .gray)
-        case .image:
-            return .init(icon: "photo", color: .green)
-        case .link:
-            return .init(icon: "link", color: .blue)
-        }
-    }
-    
-    var itemType: String {
-        return type.rawValue
-    }
-}

@@ -19,5 +19,12 @@ extension String {
 
         return urlTest.evaluate(with: trimmingCharacters(in: .whitespaces))
     }
+    
+    var getLinkPreview: String {
+        if isValidURL {
+            return components(separatedBy: ".")[1].capitalized
+        }
+        return self
+    }
 }
 

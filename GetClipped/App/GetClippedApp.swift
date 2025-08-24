@@ -24,10 +24,18 @@ struct GetClippedApp: App {
     }()
     
     var body: some Scene {
-        WindowGroup {
+        MenuBarContentView()
+            .menuBarExtraStyle(.automatic)
+            .modelContainer(sharedModelContainer)
+        
+        WindowGroup("GetClipped", id: "main") {
             ContentView()
         }
-        .windowResizability(.contentSize)
-        .modelContainer(sharedModelContainer)
+            .windowResizability(.contentSize)
+            .modelContainer(sharedModelContainer)
+            .commands {
+                // Removes the default "New Item" command
+                CommandGroup(replacing: .newItem) { }
+            }
     }
 }
