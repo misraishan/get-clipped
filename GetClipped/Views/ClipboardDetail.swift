@@ -38,47 +38,17 @@ struct ClipboardDetail: View
                     .fontWeight(.semibold)
                 
                 ScrollView {
-                    if item.type == .image, let imageData = item.image {
-                        // Display image content
-                        if let nsImage = NSImage(data: imageData) {
-                            Image(nsImage: nsImage)
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(maxHeight: 400)
-                                .cornerRadius(8)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color(.separatorColor), lineWidth: 1)
-                                )
-                        } else {
-                            Text("Unable to display image")
-                                .foregroundColor(.secondary)
-                                .padding(12)
-                                .background(Color(.textBackgroundColor))
-                                .cornerRadius(8)
-                        }
-                        
-                        // Show filename if available
-                        if let content = item.content, !content.isEmpty {
-                            Text("Filename: \(content)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                                .padding(.top, 8)
-                        }
-                    } else {
-                        // Display text content
-                        Text(item.content ?? "")
-                            .font(.body)
-                            .textSelection(.enabled)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(12)
-                            .background(Color(.textBackgroundColor))
-                            .cornerRadius(8)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color(.separatorColor), lineWidth: 1)
-                            )
-                    }
+                    Text(item.content)
+                        .font(.body)
+                        .textSelection(.enabled)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(12)
+                        .background(Color(.textBackgroundColor))
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color(.separatorColor), lineWidth: 1)
+                        )
                 }
             }
             
@@ -90,7 +60,7 @@ struct ClipboardDetail: View
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
                     Button(action: {
-                        clipboardActions.copyItemToClipboard(item)
+                        clipboardActions.copyToClipboard(item.content)
                     }) {
                         Label("Copy", systemImage: "doc.on.doc")
                     }

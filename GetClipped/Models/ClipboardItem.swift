@@ -13,14 +13,11 @@ import SwiftData
 @Model
 class ClipboardItem: Identifiable, Hashable {
     var id: String
-    var content: String?
+    var content: String
     var timestamp: Date
     var type: ClipboardItemType
     
-    @Attribute(.externalStorage)
-    var image: Data?
-    
-    init(content: String = "", timestamp: Date, type: ClipboardItemType, image: Data? = nil) {
+    init(content: String, timestamp: Date, type: ClipboardItemType) {
         self.id = UUID().uuidString
 
         self.content = content
