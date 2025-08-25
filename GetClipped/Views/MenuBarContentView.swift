@@ -11,6 +11,9 @@ import SwiftData
 struct MenuBarContentView: Scene {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openWindow) private var openWindow
+    
+    @State private var clipboardMonitor: ClipboardMonitor?
+    @State private var clipboardActions: ClipboardActions?
 
     @Query(sort: [SortDescriptor(\ClipboardItem.timestamp, order: .reverse)])
         private var mostRecentClipboardItems: [ClipboardItem]
@@ -20,7 +23,7 @@ struct MenuBarContentView: Scene {
             Menu {
                 ForEach(Array(mostRecentClipboardItems.prefix(5).enumerated()), id: \.offset) { index, item in
                     Button(action: {
-                        copyToClipboard(item.content)
+                        copyToClipboard(item: item)
                     }) {
                         HStack {
                             Text(item.preview)
@@ -38,6 +41,13 @@ struct MenuBarContentView: Scene {
                 Text("Recent Items")
             }
             .keyboardShortcut("r", modifiers: [.command])
+            .onAppear() {
+                if clipboardMonitor == nil {
+                    let monitor = ClipboardMonitor(modelContext: modelContext)
+                    clipboardMonitor = monitor
+                    clipboardActions = ClipboardActions(clipboardMonitor: monitor, modelContext: modelContext)
+                }
+            }
 
             Divider()
             Button(action: {
@@ -57,12 +67,6 @@ struct MenuBarContentView: Scene {
             .colorScheme(.dark)
             .keyboardShortcut("q", modifiers: [.command])
         }
-    }
-    
-    private func copyToClipboard(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
     }
     
     private func openMainWindow() {
@@ -90,6 +94,9 @@ struct MenuBarContentView: Scene {
             // Open new window
             openWindow(id: "main")
         }
-        
+    }
+    
+    private func copyToClipboard(item: ClipboardItem) {
+        clipboardActions!.copyItemToClipboard(item)
     }
 }

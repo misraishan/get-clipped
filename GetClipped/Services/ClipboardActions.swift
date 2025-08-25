@@ -33,6 +33,22 @@ class ClipboardActions: ObservableObject {
         pasteboard.setString(text, forType: .string)
     }
     
+    func copyItemToClipboard(_ item: ClipboardItem) {
+        let pasteboard = NSPasteboard.general
+        pasteboard.clearContents()
+        
+        switch item.type {
+        case .image:
+            if let imageData = item.image {
+                pasteboard.setData(imageData, forType: .tiff)
+            }
+        case .text, .link:
+            if let content = item.content {
+                pasteboard.setString(content, forType: .string)
+            }
+        }
+    }
+    
     func deleteItem(_ item: ClipboardItem) {
         modelContext.delete(item)
     }

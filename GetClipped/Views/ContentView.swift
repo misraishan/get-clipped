@@ -78,7 +78,7 @@ struct ContentView: View {
             return clipboardItems
         } else {
             return clipboardItems.filter {
-                $0.content.localizedCaseInsensitiveContains(searchText)
+                $0.content?.localizedCaseInsensitiveContains(searchText) ?? false
             }
         }
     }

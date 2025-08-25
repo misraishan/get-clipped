@@ -19,9 +19,9 @@ extension ClipboardItem {
             case .image:
                 return "[Image]"
             case .link:
-                return "Link to " + content.getLinkPreview
+            return "Link to " + (content?.getLinkPreview ?? "Website")
             default:
-                return String(content.prefix(50)) + (content.count > 50 ? "..." : "")
+                return String(content!.prefix(50)) + (content!.count > 50 ? "..." : "")
         }
     }
     
