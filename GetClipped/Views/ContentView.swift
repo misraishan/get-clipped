@@ -5,20 +5,20 @@
 //  Created by Ishan Misra on 8/23/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
-    
+
     @State private var clipboardMonitor: ClipboardMonitor?
     @State private var clipboardActions: ClipboardActions?
     @State private var selectedItem: ClipboardItem?
     @State private var searchText = ""
-    
+
     @Query(sort: [SortDescriptor(\ClipboardItem.timestamp, order: .reverse)])
-        private var clipboardItems: [ClipboardItem]
-    
+    private var clipboardItems: [ClipboardItem]
+
     let windowWidth = NSScreen.main?.visibleFrame.width ?? 800
 
     var body: some View {
@@ -48,7 +48,9 @@ struct ContentView: View {
         } detail: {
             if let selectedItem {
                 ClipboardDetail(item: selectedItem)
-                    .environmentObject(clipboardActions ?? ClipboardActions(clipboardMonitor: ClipboardMonitor(modelContext: modelContext), modelContext: modelContext))
+                    .environmentObject(clipboardActions ??
+                        ClipboardActions(clipboardMonitor: ClipboardMonitor(modelContext: modelContext),
+                                         modelContext: modelContext))
                     .id(selectedItem.id)
             } else {
                 Text("Select an item to view details")
@@ -70,10 +72,10 @@ struct ContentView: View {
             clipboardActions?.addItem()
         }
     }
-    
+
     var filteredItems: [ClipboardItem] {
         guard clipboardMonitor != nil else { return [] }
-        
+
         if searchText.isEmpty {
             return clipboardItems
         } else {

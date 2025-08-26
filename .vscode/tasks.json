@@ -1,0 +1,68 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "type": "shell",
+            "command": "xcodebuild",
+            "label": "Build GetClipped (Debug)",
+            "detail": "Build GetClipped app in Debug configuration",
+            "args": [
+                "-project",
+                "GetClipped.xcodeproj",
+                "-scheme",
+                "GetClipped",
+                "-configuration",
+                "Debug",
+                "build"
+            ],
+            "env": {},
+            "cwd": "${workspaceFolder}",
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$swiftc"
+            ]
+        },
+        {
+            "type": "shell",
+            "command": "xcodebuild",
+            "label": "Build GetClipped (Release)",
+            "detail": "Build GetClipped app in Release configuration",
+            "args": [
+                "-project",
+                "GetClipped.xcodeproj",
+                "-scheme",
+                "GetClipped",
+                "-configuration",
+                "Release",
+                "build"
+            ],
+            "env": {},
+            "cwd": "${workspaceFolder}",
+            "group": "build",
+            "problemMatcher": [
+                "$swiftc"
+            ]
+        },
+        {
+            "type": "shell",
+            "command": "./generate_compile_commands.sh",
+            "label": "Generate compile_commands.json",
+            "detail": "Generate compile_commands.json for SourceKit-LSP",
+            "args": [],
+            "env": {},
+            "cwd": "${workspaceFolder}",
+            "group": "build",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "shared",
+                "showReuseMessage": true,
+                "clear": false
+            }
+        }
+    ]
+}

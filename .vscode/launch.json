@@ -1,0 +1,16 @@
+{
+    "configurations": [
+        {
+            "type": "lldb",
+            "name": "Debug GetClipped",
+            "request": "launch",
+            "program": "${env:HOME}/Library/Developer/Xcode/DerivedData/GetClipped-gnluchxblqygmtfeadeailblkeow/Build/Products/Debug/GetClipped.app/Contents/MacOS/GetClipped",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build GetClipped (Debug)",
+            "stopOnEntry": false,
+            "console": "integratedTerminal",
+            "env": {}
+        }
+    ]
+}
