@@ -24,7 +24,7 @@ struct MenuBarContentView: Scene {
                 ForEach(Array(mostRecentClipboardItems.prefix(5).enumerated()), id: \.offset) { index, item in
                     Button(action: {
                         copyToClipboard(item: item)
-                    }, label: {
+                    }) {
                         HStack {
                             Text(item.preview)
                                 .lineLimit(1)
@@ -52,7 +52,7 @@ struct MenuBarContentView: Scene {
             Divider()
             Button(action: {
                 openMainWindow()
-            }), label: {
+            }) {
                 Text("Open GetClipped")
             }
             .buttonStyle(PlainButtonStyle())
@@ -60,7 +60,7 @@ struct MenuBarContentView: Scene {
 
             Button(action: {
                 NSApplication.shared.terminate(nil)
-            }), label: {
+            }) {
                 Text("Quit GetClipped")
             }
             .buttonStyle(PlainButtonStyle())

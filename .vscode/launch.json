@@ -1,19 +1,16 @@
 {
-    // Use IntelliSense to learn about possible attributes.
-    // Hover to view descriptions of existing attributes.
-    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
     "configurations": [
         {
             "type": "lldb",
+            "name": "Debug GetClipped",
             "request": "launch",
-            "preLaunchTask": "swiftc with debug",
-            "name": "Debug",
-            "program": "${fileDirname}/${fileBasenameNoExtension}",
+            "program": "${env:HOME}/Library/Developer/Xcode/DerivedData/GetClipped-gnluchxblqygmtfeadeailblkeow/Build/Products/Debug/GetClipped.app/Contents/MacOS/GetClipped",
             "args": [],
-            "sourceLanguages": [
-                "swift"
-            ]
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "Build GetClipped (Debug)",
+            "stopOnEntry": false,
+            "console": "integratedTerminal",
+            "env": {}
         }
     ]
 }

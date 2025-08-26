@@ -12,14 +12,14 @@ import SwiftUICore
 @Model
 class ClipboardItem: Identifiable, Hashable {
     var id: String
-    var content: String?
+    var content: String
     var timestamp: Date
     var type: ClipboardItemType
 
     @Attribute
     var data: Data?
 
-    init(content: String? = nil, timestamp: Date, type: ClipboardItemType, data _: Data? = nil) {
+    init(content: String = "", timestamp: Date, type: ClipboardItemType, data _: Data? = nil) {
         id = UUID().uuidString
 
         self.content = content

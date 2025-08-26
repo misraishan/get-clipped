@@ -1,1 +1,6 @@
 .DS_Store
+
+# VS Code Swift Development (Optional - used for VS Code language support)
+compile_commands.json
+VS_CODE_SETUP.md
+generate_compile_commands.sh

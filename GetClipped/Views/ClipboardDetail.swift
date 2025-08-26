@@ -60,14 +60,14 @@ struct ClipboardDetail: View {
                 HStack(spacing: 8) {
                     Button(action: {
                         clipboardActions.copyToClipboard(item.content)
-                    }), label: {
+                    }) {
                         Label("Copy", systemImage: "doc.on.doc")
                     }
                     .buttonStyle(.borderedProminent)
 
                     Button(action: {
                         clipboardActions.deleteItem(item)
-                    }), label: {
+                    }) {
                         Label("Delete", systemImage: "trash")
                     }
                     .buttonStyle(.bordered)

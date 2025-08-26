@@ -51,9 +51,7 @@ class ClipboardActions: ObservableObject {
                 pasteboard.setData(imageData, forType: .tiff)
             }
         case .text, .link:
-            if let content = item.content {
-                pasteboard.setString(content, forType: .string)
-            }
+            _ = pasteboard.setString(item.content, forType: .string)
         }
     }
 }
