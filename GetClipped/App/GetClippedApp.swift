@@ -5,14 +5,14 @@
 //  Created by Ishan Misra on 8/23/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 @main
 struct GetClippedApp: App {
     var sharedModelContainer: ModelContainer = {
         let schema = Schema([
-            ClipboardItem.self,
+            ClipboardItem.self
         ])
         let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
 
@@ -22,20 +22,20 @@ struct GetClippedApp: App {
             fatalError("Could not create ModelContainer: \(error)")
         }
     }()
-    
+
     var body: some Scene {
         MenuBarContentView()
             .menuBarExtraStyle(.automatic)
             .modelContainer(sharedModelContainer)
-        
+
         WindowGroup("GetClipped", id: "main") {
             ContentView()
         }
-            .windowResizability(.contentSize)
-            .modelContainer(sharedModelContainer)
-            .commands {
-                // Removes the default "New Item" command
-                CommandGroup(replacing: .newItem) { }
-            }
+        .windowResizability(.contentSize)
+        .modelContainer(sharedModelContainer)
+        .commands {
+            // Removes the default "New Item" command
+            CommandGroup(replacing: .newItem) {}
+        }
     }
 }

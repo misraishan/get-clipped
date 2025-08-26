@@ -5,26 +5,28 @@
 //  Created by Ishan Misra on 8/23/25.
 //
 
-
 import Foundation
-import SwiftUICore
 import SwiftData
+import SwiftUICore
 
 @Model
 class ClipboardItem: Identifiable, Hashable {
     var id: String
-    var content: String
+    var content: String?
     var timestamp: Date
     var type: ClipboardItemType
-    
-    init(content: String, timestamp: Date, type: ClipboardItemType) {
-        self.id = UUID().uuidString
+
+    @Attribute
+    var data: Data?
+
+    init(content: String? = nil, timestamp: Date, type: ClipboardItemType, data _: Data? = nil) {
+        id = UUID().uuidString
 
         self.content = content
         self.timestamp = timestamp
         self.type = type
     }
-    
+
     enum ClipboardItemType: String, Codable {
         case text = "Text"
         case image = "Image"

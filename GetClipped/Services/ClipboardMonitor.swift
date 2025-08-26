@@ -5,14 +5,14 @@
 //  Created by Ishan Misra on 8/23/25.
 //
 
-import Foundation
 import AppKit
-import SwiftUICore
+import Foundation
 import SwiftData
+import SwiftUICore
 
 class ClipboardMonitor: ObservableObject {
     private let modelContext: ModelContext
-    
+
     private var timer: Timer?
     private var lastChangeCount = NSPasteboard.general.changeCount
 
@@ -38,16 +38,16 @@ class ClipboardMonitor: ObservableObject {
 
     private func checkClipboard() {
         let pasteboard = NSPasteboard.general
-                
+
         // Check if clipboard content changed
         if pasteboard.changeCount != lastChangeCount {
             lastChangeCount = pasteboard.changeCount
-            
+
             // Get the clipboard content
             if let string = pasteboard.string(forType: .string), !string.isEmpty {
                 var itemType = ClipboardItem.ClipboardItemType.text
-                
-                if (string.isValidURL) {
+
+                if string.isValidURL {
                     itemType = .link
                 }
 
@@ -56,7 +56,7 @@ class ClipboardMonitor: ObservableObject {
                     timestamp: Date(),
                     type: itemType
                 )
-                
+
                 // Check for duplicates by fetching the most recent item
                 do {
                     var descriptor = FetchDescriptor<ClipboardItem>(
@@ -64,7 +64,7 @@ class ClipboardMonitor: ObservableObject {
                     )
                     descriptor.fetchLimit = 1
                     let mostRecent = try modelContext.fetch(descriptor).first
-                    
+
                     if mostRecent?.content != string {
                         modelContext.insert(newItem)
                         try modelContext.save() // Force save to trigger UI updates

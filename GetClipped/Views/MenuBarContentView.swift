@@ -5,23 +5,26 @@
 //  Created by Ishan Misra on 8/24/25.
 //
 
-import SwiftUI
 import SwiftData
+import SwiftUI
 
 struct MenuBarContentView: Scene {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openWindow) private var openWindow
 
+    @State private var clipboardMonitor: ClipboardMonitor?
+    @State private var clipboardActions: ClipboardActions?
+
     @Query(sort: [SortDescriptor(\ClipboardItem.timestamp, order: .reverse)])
-        private var mostRecentClipboardItems: [ClipboardItem]
-    
+    private var mostRecentClipboardItems: [ClipboardItem]
+
     var body: some Scene {
         MenuBarExtra("GetClipped", systemImage: "paperclip") {
             Menu {
                 ForEach(Array(mostRecentClipboardItems.prefix(5).enumerated()), id: \.offset) { index, item in
                     Button(action: {
-                        copyToClipboard(item.content)
-                    }) {
+                        copyToClipboard(item: item)
+                    }, label: {
                         HStack {
                             Text(item.preview)
                                 .lineLimit(1)
@@ -38,19 +41,26 @@ struct MenuBarContentView: Scene {
                 Text("Recent Items")
             }
             .keyboardShortcut("r", modifiers: [.command])
+            .onAppear {
+                if clipboardMonitor == nil {
+                    let monitor = ClipboardMonitor(modelContext: modelContext)
+                    clipboardMonitor = monitor
+                    clipboardActions = ClipboardActions(clipboardMonitor: monitor, modelContext: modelContext)
+                }
+            }
 
             Divider()
             Button(action: {
                 openMainWindow()
-            }) {
+            }), label: {
                 Text("Open GetClipped")
             }
             .buttonStyle(PlainButtonStyle())
             .keyboardShortcut("o", modifiers: [.command])
-            
+
             Button(action: {
                 NSApplication.shared.terminate(nil)
-            }) {
+            }), label: {
                 Text("Quit GetClipped")
             }
             .buttonStyle(PlainButtonStyle())
@@ -58,27 +68,21 @@ struct MenuBarContentView: Scene {
             .keyboardShortcut("q", modifiers: [.command])
         }
     }
-    
-    private func copyToClipboard(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
-    }
-    
+
     private func openMainWindow() {
         NSApp.activate(ignoringOtherApps: true)
-        
+
         // Check if window already exists
         let hasVisibleWindow = NSApp.windows.contains { window in
-            return window.isVisible &&
-            window.title == "GetClipped" &&
-            window.contentViewController is NSHostingController<ContentView>
+            window.isVisible &&
+                window.title == "GetClipped" &&
+                window.contentViewController is NSHostingController<ContentView>
         }
-        
+
         if hasVisibleWindow {
             // Bring existing window to front
             for window in NSApp.windows {
-                if window.title == "GetClipped" && window.isVisible {
+                if window.title == "GetClipped", window.isVisible {
                     window.makeKeyAndOrderFront(nil)
                     if window.isMiniaturized {
                         window.deminiaturize(nil)
@@ -90,6 +94,9 @@ struct MenuBarContentView: Scene {
             // Open new window
             openWindow(id: "main")
         }
-        
+    }
+
+    private func copyToClipboard(item: ClipboardItem) {
+        clipboardActions!.copyItemToClipboard(item)
     }
 }

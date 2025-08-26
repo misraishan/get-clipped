@@ -7,11 +7,10 @@
 
 import SwiftUI
 
-struct ClipboardDetail: View
-{
+struct ClipboardDetail: View {
     let item: ClipboardItem
     @EnvironmentObject var clipboardActions: ClipboardActions
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             // Header with icon and type
@@ -25,18 +24,18 @@ struct ClipboardDetail: View
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
-                
+
                 Spacer()
             }
-            
+
             Divider()
-            
+
             // Content section
             VStack(alignment: .leading, spacing: 8) {
                 Text("Content")
                     .font(.subheadline)
                     .fontWeight(.semibold)
-                
+
                 ScrollView {
                     Text(item.content)
                         .font(.body)
@@ -51,7 +50,7 @@ struct ClipboardDetail: View
                         )
                 }
             }
-            
+
             Spacer()
         }
         .padding(20)
@@ -61,14 +60,14 @@ struct ClipboardDetail: View
                 HStack(spacing: 8) {
                     Button(action: {
                         clipboardActions.copyToClipboard(item.content)
-                    }) {
+                    }), label: {
                         Label("Copy", systemImage: "doc.on.doc")
                     }
                     .buttonStyle(.borderedProminent)
-                    
+
                     Button(action: {
                         clipboardActions.deleteItem(item)
-                    }) {
+                    }), label: {
                         Label("Delete", systemImage: "trash")
                     }
                     .buttonStyle(.bordered)
@@ -80,5 +79,7 @@ struct ClipboardDetail: View
 }
 
 #Preview {
-    ClipboardDetail(item: ClipboardItem(content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .text))
+    ClipboardDetail(item: ClipboardItem(
+        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .text
+    ))
 }
