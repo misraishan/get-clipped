@@ -16,7 +16,6 @@ class ClipboardMonitor: ObservableObject {
 
     private var timer: Timer?
     private var lastChangeCount = NSPasteboard.general.changeCount
-    private let maxDataSize: Int = 10 * 1024 * 1024 // 10 mb
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
@@ -107,8 +106,7 @@ class ClipboardMonitor: ObservableObject {
         type: NSPasteboard.PasteboardType,
         timestamp: Date
     ) -> ClipboardItem? {
-        guard let imageData = pasteboard.data(forType: type),
-              imageData.count <= maxDataSize else { return nil }
+        guard let imageData = pasteboard.data(forType: type) else { return nil }
 
         // Try to get image dimensions for content description
         let image = NSImage(data: imageData)
@@ -128,8 +126,7 @@ class ClipboardMonitor: ObservableObject {
         type: NSPasteboard.PasteboardType,
         timestamp: Date
     ) -> ClipboardItem? {
-        guard let pdfData = pasteboard.data(forType: .pdf),
-              pdfData.count <= maxDataSize else { return nil }
+        guard let pdfData = pasteboard.data(forType: .pdf) else { return nil }
 
         return ClipboardItem(
             content: "PDF Document",
@@ -144,8 +141,7 @@ class ClipboardMonitor: ObservableObject {
         type: NSPasteboard.PasteboardType,
         timestamp: Date
     ) -> ClipboardItem? {
-        guard let data = pasteboard.data(forType: type),
-              data.count <= maxDataSize else { return nil }
+        guard let data = pasteboard.data(forType: type) else { return nil }
 
         let description = type.rawValue.split(separator: ".").last.map(String.init)?.capitalized ?? "Unknown Data"
 
