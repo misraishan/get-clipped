@@ -44,6 +44,17 @@ struct ContentView: View {
                         Label("Add Item", systemImage: "plus")
                     }
                 }
+                ToolbarItem(placement: .destructiveAction) {
+                    Button(action: {
+                        withAnimation {
+                            clipboardActions?.clearHistory()
+                            selectedItem = nil
+                        }
+                    }) {
+                        Label("Clear History", systemImage: "trash")
+                    }
+                    .disabled(clipboardItems.isEmpty)
+                }
             }
         } detail: {
             if let selectedItem {

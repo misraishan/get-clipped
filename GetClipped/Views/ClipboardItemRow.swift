@@ -38,12 +38,12 @@ struct ClipboardItemRow: View {
 
 #Preview {
     ClipboardItemRow(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .text
+        content: "Sample clipboard content for preview purposes.", timestamp: Date(), pasteboardType: .string
     ), isSelected: false)
     ClipboardItemRow(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .link
+        content: "Sample clipboard content for preview purposes.", timestamp: Date(), pasteboardType: .URL
     ), isSelected: true)
     ClipboardItemRow(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .image
+        content: "Sample clipboard content for preview purposes.", timestamp: Date(), pasteboardType: .string
     ), isSelected: false)
 }

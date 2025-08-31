@@ -18,19 +18,13 @@ class ClipboardActions: ObservableObject {
         self.modelContext = modelContext
     }
 
-    func addItem(content: String = "New Clipboard Item", type: ClipboardItem.ClipboardItemType = .text) {
+    func addItem(content: String = "New Editable Clipboard Item") {
         let newItem = ClipboardItem(
             content: content,
             timestamp: Date(),
-            type: type
+            pasteboardType: .string
         )
         modelContext.insert(newItem)
-    }
-
-    func copyToClipboard(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
     }
 
     func deleteItem(_ item: ClipboardItem) {
@@ -41,17 +35,24 @@ class ClipboardActions: ObservableObject {
         try? modelContext.delete(model: ClipboardItem.self)
     }
 
-    func copyItemToClipboard(_ item: ClipboardItem) {
+    func getImage(from item: ClipboardItem) -> NSImage? {
+        guard item.category == .image,
+              let data = item.data else { return nil }
+        return NSImage(data: data)
+    }
+
+    func copyToClipboard(_ item: ClipboardItem) {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
-        switch item.type {
-        case .image:
-            if let imageData = item.data {
-                pasteboard.setData(imageData, forType: .tiff)
-            }
-        case .text, .link:
-            _ = pasteboard.setString(item.content, forType: .string)
+        clipboardMonitor.stopMonitoring()
+
+        if let data = item.data {
+            pasteboard.setData(data, forType: NSPasteboard.PasteboardType(item.pasteboardType))
+        } else {
+            pasteboard.setString(item.content, forType: .string)
         }
+
+        clipboardMonitor.startMonitoring()
     }
 }

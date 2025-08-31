@@ -97,6 +97,6 @@ struct MenuBarContentView: Scene {
     }
 
     private func copyToClipboard(item: ClipboardItem) {
-        clipboardActions!.copyItemToClipboard(item)
+        clipboardActions?.copyToClipboard(item)
     }
 }

@@ -16,6 +16,7 @@ struct ClipboardDetail: View {
             // Header with icon and type
             HStack(spacing: 12) {
                 ClipboardItemIconView(item: item.icon)
+                    .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading, spacing: 2) {
                     Text(item.itemType + " Item")
@@ -36,6 +37,15 @@ struct ClipboardDetail: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
 
+                if item.data != nil, let imageData = clipboardActions.getImage(from: item)?.tiffRepresentation, let nsImage = NSImage(data: imageData) {
+                    Image(nsImage: nsImage)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxHeight: 200)
+                        .cornerRadius(8)
+                        .padding(.bottom, 8)
+                }
+                
                 ScrollView {
                     Text(item.content)
                         .font(.body)
@@ -59,7 +69,7 @@ struct ClipboardDetail: View {
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
                     Button(action: {
-                        clipboardActions.copyToClipboard(item.content)
+                        clipboardActions.copyToClipboard(item)
                     }) {
                         Label("Copy", systemImage: "doc.on.doc")
                     }
@@ -80,6 +90,6 @@ struct ClipboardDetail: View {
 
 #Preview {
     ClipboardDetail(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .text
+        content: "Sample clipboard content for preview purposes.", timestamp: Date(), pasteboardType: .string
     ))
 }
