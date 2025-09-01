@@ -11,7 +11,6 @@ import SwiftUI
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
-    @State private var clipboardMonitor: ClipboardMonitor?
     @State private var clipboardActions: ClipboardActions?
     @State private var selectedItem: ClipboardItem?
     @State private var searchText = ""
@@ -40,7 +39,7 @@ struct ContentView: View {
             .navigationSplitViewStyle(.balanced)
             .toolbar {
                 ToolbarItem {
-                    Button(action: { Task { await addItem() } }) {
+                    Button(action: { Task { addItem } }) {
                         Label("Add Item", systemImage: "plus")
                     }
                 }
@@ -59,9 +58,7 @@ struct ContentView: View {
         } detail: {
             if let selectedItem {
                 ClipboardDetail(item: selectedItem)
-                    .environmentObject(clipboardActions ??
-                        ClipboardActions(clipboardMonitor: ClipboardMonitor(modelContext: modelContext),
-                                         modelContext: modelContext))
+                    .environmentObject(clipboardActions ?? ClipboardActions(modelContext: modelContext))
                     .id(selectedItem.id)
             } else {
                 Text("Select an item to view details")
@@ -70,10 +67,8 @@ struct ContentView: View {
             }
         }
         .onAppear {
-            if clipboardMonitor == nil {
-                let monitor = ClipboardMonitor(modelContext: modelContext)
-                clipboardMonitor = monitor
-                clipboardActions = ClipboardActions(clipboardMonitor: monitor, modelContext: modelContext)
+            if clipboardActions == nil {
+                clipboardActions = ClipboardActions(modelContext: modelContext)
             }
         }
     }
@@ -83,7 +78,7 @@ struct ContentView: View {
     }
 
     var filteredItems: [ClipboardItem] {
-        guard clipboardMonitor != nil else { return [] }
+        guard clipboardActions != nil else { return [] }
 
         if searchText.isEmpty {
             return clipboardItems

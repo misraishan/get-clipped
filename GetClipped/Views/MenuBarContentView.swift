@@ -12,7 +12,6 @@ struct MenuBarContentView: Scene {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.openWindow) private var openWindow
 
-    @State private var clipboardMonitor: ClipboardMonitor?
     @State private var clipboardActions: ClipboardActions?
 
     @Query(sort: [SortDescriptor(\ClipboardItem.timestamp, order: .reverse)])
@@ -27,10 +26,8 @@ struct MenuBarContentView: Scene {
             }
             .keyboardShortcut("r", modifiers: [.command])
             .onAppear {
-                if clipboardMonitor == nil {
-                    let monitor = ClipboardMonitor(modelContext: modelContext)
-                    clipboardMonitor = monitor
-                    clipboardActions = ClipboardActions(clipboardMonitor: monitor, modelContext: modelContext)
+                if clipboardActions == nil {
+                    clipboardActions = ClipboardActions(modelContext: modelContext)
                 }
             }
 

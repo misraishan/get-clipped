@@ -12,6 +12,8 @@ import SwiftUICore
 import UniformTypeIdentifiers
 
 class ClipboardMonitor: ObservableObject {
+    static var shared: ClipboardMonitor?
+    
     private let modelContext: ModelContext
 
     private var timer: Timer?
@@ -20,6 +22,10 @@ class ClipboardMonitor: ObservableObject {
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         startMonitoring()
+    }
+    
+    static func initialize(with modelContext: ModelContext) {
+        shared = ClipboardMonitor(modelContext: modelContext)
     }
 
     deinit {
