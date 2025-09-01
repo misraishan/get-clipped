@@ -35,15 +35,3 @@ struct ClipboardItemRow: View {
         .animation(.easeInOut(duration: 0.15), value: isSelected)
     }
 }
-
-#Preview {
-    ClipboardItemRow(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .text
-    ), isSelected: false)
-    ClipboardItemRow(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .link
-    ), isSelected: true)
-    ClipboardItemRow(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .image
-    ), isSelected: false)
-}

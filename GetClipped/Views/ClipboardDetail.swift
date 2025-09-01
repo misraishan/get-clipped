@@ -16,9 +16,10 @@ struct ClipboardDetail: View {
             // Header with icon and type
             HStack(spacing: 12) {
                 ClipboardItemIconView(item: item.icon)
+                    .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.itemType + " Item")
+                    Text(item.category.rawValue.capitalized + " Item")
                         .font(.headline)
                     Text("Copied at \(item.timeString)")
                         .font(.caption)
@@ -36,18 +37,30 @@ struct ClipboardDetail: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
 
+                contentPreview(for: item)
+
                 ScrollView {
                     Text(item.content)
                         .font(.body)
-                        .textSelection(.enabled)
+                        .padding(8)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(12)
-                        .background(Color(.textBackgroundColor))
+                        .background(Color(NSColor.textBackgroundColor))
                         .cornerRadius(8)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 8)
-                                .stroke(Color(.separatorColor), lineWidth: 1)
-                        )
+                }
+                .frame(maxHeight: 1024)
+
+                if item.previewData != nil {
+                    Divider()
+                    HStack {
+                        Spacer()
+
+                        Button(action: {
+                            item.openInDefaultApp()
+                        }) {
+                            Label("Open", systemImage: "arrow.up.right.square")
+                        }
+                        .buttonStyle(.bordered)
+                    }
                 }
             }
 
@@ -59,7 +72,9 @@ struct ClipboardDetail: View {
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
                     Button(action: {
-                        clipboardActions.copyToClipboard(item.content)
+                        Task {
+                            await clipboardActions.copyToClipboard(item)
+                        }
                     }) {
                         Label("Copy", systemImage: "doc.on.doc")
                     }
@@ -76,10 +91,67 @@ struct ClipboardDetail: View {
             }
         }
     }
-}
 
-#Preview {
-    ClipboardDetail(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), type: .text
-    ))
+    @ViewBuilder
+    private func contentPreview(for item: ClipboardItem) -> some View {
+        if item.previewData != nil {
+            switch item.category {
+            case .image, .pdf:
+                Image(nsImage: NSImage(data: item.previewData!) ?? NSImage())
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: 1024, maxHeight: 1024)
+                    .cornerRadius(8)
+                    .padding(.bottom, 8)
+                    .onTapGesture {
+                        item.openInDefaultApp()
+                    }
+
+            case .link:
+                if let url = URL(string: item.content) {
+                    Link(destination: url) {
+                        Text(item.content)
+                            .font(.body)
+                            .foregroundColor(.blue)
+                            .underline()
+                    }
+                } else {
+                    Text("Invalid link")
+                        .font(.body)
+                        .foregroundColor(.secondary)
+                }
+            case .file:
+                Link(destination: URL(fileURLWithPath: item.content)) {
+                    Text(item.contentPreviewString ?? item.content)
+                        .font(.body)
+                        .foregroundColor(.blue)
+                        .underline()
+                }
+
+            case .text:
+//                show text file embedded rather than pulling all the text out
+                if let data = item.previewData, let text = String(data: data, encoding: .utf8) {
+                    ScrollView {
+                        Text(text)
+                            .font(.body)
+                            .padding(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(NSColor.textBackgroundColor))
+                            .cornerRadius(8)
+                    }
+                    .frame(maxHeight: 512)
+                } else {
+                    Text(item.contentPreviewString ?? item.content)
+                        .font(.body)
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(NSColor.textBackgroundColor))
+                        .cornerRadius(8)
+                }
+
+            default:
+                EmptyView()
+            }
+        }
+    }
 }

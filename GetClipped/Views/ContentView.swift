@@ -40,9 +40,20 @@ struct ContentView: View {
             .navigationSplitViewStyle(.balanced)
             .toolbar {
                 ToolbarItem {
-                    Button(action: addItem) {
+                    Button(action: { Task { await addItem() } }) {
                         Label("Add Item", systemImage: "plus")
                     }
+                }
+                ToolbarItem(placement: .destructiveAction) {
+                    Button(action: {
+                        withAnimation {
+                            clipboardActions?.clearHistory()
+                            selectedItem = nil
+                        }
+                    }) {
+                        Label("Clear History", systemImage: "trash")
+                    }
+                    .disabled(clipboardItems.isEmpty)
                 }
             }
         } detail: {
@@ -67,10 +78,8 @@ struct ContentView: View {
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            clipboardActions?.addItem()
-        }
+    private func addItem() async {
+        await clipboardActions?.addItem()
     }
 
     var filteredItems: [ClipboardItem] {

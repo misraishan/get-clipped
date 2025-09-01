@@ -18,19 +18,13 @@ class ClipboardActions: ObservableObject {
         self.modelContext = modelContext
     }
 
-    func addItem(content: String = "New Clipboard Item", type: ClipboardItem.ClipboardItemType = .text) {
-        let newItem = ClipboardItem(
+    func addItem(content: String = "New Editable Clipboard Item") async {
+        let newItem = await ClipboardItem(
             content: content,
             timestamp: Date(),
-            type: type
+            pasteboardType: .string
         )
         modelContext.insert(newItem)
-    }
-
-    func copyToClipboard(_ text: String) {
-        let pasteboard = NSPasteboard.general
-        pasteboard.clearContents()
-        pasteboard.setString(text, forType: .string)
     }
 
     func deleteItem(_ item: ClipboardItem) {
@@ -41,17 +35,25 @@ class ClipboardActions: ObservableObject {
         try? modelContext.delete(model: ClipboardItem.self)
     }
 
-    func copyItemToClipboard(_ item: ClipboardItem) {
+    func copyToClipboard(_ item: ClipboardItem) async {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
-        switch item.type {
-        case .image:
-            if let imageData = item.data {
-                pasteboard.setData(imageData, forType: .tiff)
+        clipboardMonitor.stopMonitoring()
+        
+        if item.hasExternalData {
+            if let data = await LocalFileManager.instance.loadData(withId: item.id, category: item.category) {
+                pasteboard.setData(data, forType: NSPasteboard.PasteboardType(item.pasteboardType))
+                clipboardMonitor.startMonitoring()
             }
-        case .text, .link:
-            _ = pasteboard.setString(item.content, forType: .string)
+            return
+        } else {
+            if (item.previewData != nil) {
+                pasteboard.setData(item.previewData!, forType: NSPasteboard.PasteboardType(item.pasteboardType))
+            } else {
+                pasteboard.setString(item.content, forType: .string)
+                clipboardMonitor.startMonitoring()
+            }
         }
     }
 }
