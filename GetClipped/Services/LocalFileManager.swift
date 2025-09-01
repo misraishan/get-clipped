@@ -49,6 +49,8 @@ class LocalFileManager {
     
     func generatePreview(from data: Data, category: ClipboardItem.ClipboardItemCategory) -> Data? {
         switch category {
+        case .text, .link, .html:
+            return generateTextFilePreview(from: data)
         case .image:
             return generateImagePreview(from: data)
         case .pdf:
@@ -56,6 +58,12 @@ class LocalFileManager {
         default:
             return nil
         }
+    }
+    
+    private func generateTextFilePreview(from data: Data) -> Data? {
+        guard let content = String(data: data, encoding: .utf8) else { return nil }
+        let previewContent = String(content.prefix(1000))
+        return previewContent.data(using: .utf8)
     }
     
     private func generatePdfPreview(from data: Data) -> Data? {

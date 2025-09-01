@@ -24,13 +24,13 @@ class ClipboardItem: Identifiable, Hashable {
     // completely on swiftdata
     @Attribute(.externalStorage)
     var previewData: Data?
-    
+
     var fileSize: Int64?
     var filePath: String?
     var fileName: String?
 
     init(content: String = "", timestamp: Date, pasteboardType: NSPasteboard.PasteboardType, data: Data? = nil, category: ClipboardItemCategory = .unknown) async {
-        id = UUID().uuidString
+        self.id = UUID().uuidString
 
         self.content = content
         self.timestamp = timestamp
@@ -38,13 +38,15 @@ class ClipboardItem: Identifiable, Hashable {
         self.category = category
 
         // Only have data restriction if category is image, else store all data types to disk
-        if let data = data, (category == .image && data.count > 1024 * 1024 || category != .image) {
+        if let data = data, category == .image && data.count > 1024 * 1024 || category != .image {
             self.filePath = await LocalFileManager.instance.saveData(data, withId: id, category: category)?.path
             self.fileSize = Int64(data.count)
-                        
-            if category == .image || category == .pdf {
-                self.previewData = LocalFileManager.instance.generatePreview(from: data, category: category)
+            self.previewData = LocalFileManager.instance.generatePreview(from: data, category: category)
+            
+            if category == .text {
+                self.content = "Text File - \(data.count) bytes, \(String(data: data, encoding: .utf8)?.count ?? 0) characters"
             }
+
         } else {
             self.previewData = data
             self.fileSize = Int64(data?.count ?? 0)
@@ -60,15 +62,15 @@ class ClipboardItem: Identifiable, Hashable {
     var typeDescription: String {
         return category.rawValue
     }
-    
+
     /// Allows for lazy loading of data by fetching preview, and then loading full data from disk if needed
     func loadData() async -> Data? {
-        if filePath != nil && previewData == nil {
+        if filePath != nil, previewData == nil {
             return await LocalFileManager.instance.loadData(withId: id, category: category)
         }
         return previewData
     }
-    
+
     var hasExternalData: Bool {
         return filePath != nil
     }

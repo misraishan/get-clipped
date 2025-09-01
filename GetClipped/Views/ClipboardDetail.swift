@@ -48,6 +48,20 @@ struct ClipboardDetail: View {
                         .cornerRadius(8)
                 }
                 .frame(maxHeight: 1024)
+
+                if item.previewData != nil {
+                    Divider()
+                    HStack {
+                        Spacer()
+
+                        Button(action: {
+                            item.openInDefaultApp()
+                        }) {
+                            Label("Open", systemImage: "arrow.up.right.square")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                }
             }
 
             Spacer()
@@ -114,6 +128,28 @@ struct ClipboardDetail: View {
                             item.openInDefaultApp()
                         }
                 }
+
+            case .text:
+//                show text file embedded rather than pulling all the text out
+                if let data = item.previewData, let text = String(data: data, encoding: .utf8) {
+                    ScrollView {
+                        Text(text)
+                            .font(.body)
+                            .padding(8)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .background(Color(NSColor.textBackgroundColor))
+                            .cornerRadius(8)
+                    }
+                    .frame(maxHeight: 512)
+                } else {
+                    Text(item.contentPreviewString ?? item.content)
+                        .font(.body)
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(NSColor.textBackgroundColor))
+                        .cornerRadius(8)
+                }
+
             default:
                 EmptyView()
             }

@@ -96,11 +96,22 @@ class ClipboardMonitor: ObservableObject {
         timestamp: Date
     ) async -> ClipboardItem? {
         guard let string = pasteboard.string(forType: .string), !string.isEmpty else { return nil }
+        
+        var data: Data?
+        var contentString: String
+        
+        if string.count > 1000 {
+            data = string.data(using: .utf8)
+            contentString = string.prefix(1000) + "..." // truncate for display if too long
+        } else {
+            contentString = string
+        }
 
         return await ClipboardItem(
-            content: string,
+            content: contentString,
             timestamp: timestamp,
             pasteboardType: type,
+            data: data,
             category: .text
         )
     }
