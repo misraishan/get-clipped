@@ -18,8 +18,20 @@ extension ClipboardItem {
     
     // TODO: Complete this function to open files in default apps
     func openInDefaultApp() {
-        let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fileUrl = documentsUrl.appendingPathComponent("temp_\(id)").appendingPathExtension(category == .pdf ? "pdf" : "txt")
+        if hasExternalData {
+            Task {
+                let url = await LocalFileManager.instance.loadUrl(withId: id, category: category)
+                NSWorkspace.shared.open(url!)
+            }
+        } else if let data = previewData {
+            Task {
+                await LocalFileManager.instance.saveData(data, withId: id, category: category).flatMap { url in
+                    NSWorkspace.shared.open(url)
+                }
+            }
+        } else {
+            print("No external data to open for item with id: \(id)")
+        }
     }
     
     var contentPreviewString: String? {

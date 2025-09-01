@@ -58,7 +58,7 @@ struct MenuBarContentView: Scene {
     private var recentItemsList: some View {
         ForEach(Array(mostRecentClipboardItems.prefix(5).enumerated()), id: \.offset) { index, item in
             Button(action: { Task {
-                await copyToClipboard(item: item)
+                await clipboardActions?.copyToClipboard(item)
             } }) {
                 HStack {
                     Text(item.preview)
@@ -99,9 +99,5 @@ struct MenuBarContentView: Scene {
             // Open new window
             openWindow(id: "main")
         }
-    }
-
-    private func copyToClipboard(item: ClipboardItem) async {
-        await clipboardActions?.copyToClipboard(item)
     }
 }

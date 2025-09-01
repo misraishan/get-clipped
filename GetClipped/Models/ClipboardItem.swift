@@ -14,6 +14,7 @@ import UniformTypeIdentifiers
 @Model
 class ClipboardItem: Identifiable, Hashable {
     var id: String
+    /// Acts as metadata if no previewdata or file is stored
     var content: String
     var timestamp: Date
     var pasteboardType: String
@@ -36,13 +37,17 @@ class ClipboardItem: Identifiable, Hashable {
         self.pasteboardType = pasteboardType.rawValue
         self.category = category
 
-        if let data = data, data.count > 1024 * 1024 {
+        // Only have data restriction if category is image, else store all data types to disk
+        if let data = data, (category == .image && data.count > 1024 * 1024 || category != .image) {
             self.filePath = await LocalFileManager.instance.saveData(data, withId: id, category: category)?.path
             self.fileSize = Int64(data.count)
-            
+                        
             if category == .image || category == .pdf {
                 self.previewData = LocalFileManager.instance.generatePreview(from: data, category: category)
             }
+        } else {
+            self.previewData = data
+            self.fileSize = Int64(data?.count ?? 0)
         }
     }
 
@@ -58,8 +63,8 @@ class ClipboardItem: Identifiable, Hashable {
     
     /// Allows for lazy loading of data by fetching preview, and then loading full data from disk if needed
     func loadData() async -> Data? {
-        if let filePath = filePath {
-            return await LocalFileManager.instance.loadData(fileName: URL(fileURLWithPath: filePath).lastPathComponent)
+        if filePath != nil && previewData == nil {
+            return await LocalFileManager.instance.loadData(withId: id, category: category)
         }
         return previewData
     }

@@ -42,14 +42,18 @@ class ClipboardActions: ObservableObject {
         clipboardMonitor.stopMonitoring()
         
         if item.hasExternalData {
-            await LocalFileManager.instance.loadData(fileName: item.fileName!).flatMap { data in
+            await LocalFileManager.instance.loadData(withId: item.id, category: item.category).flatMap { data in
                 pasteboard.setData(data, forType: NSPasteboard.PasteboardType(item.pasteboardType))
                 clipboardMonitor.startMonitoring()
             }
-            
+            return
         } else {
-            pasteboard.setString(item.content, forType: .string)
-            clipboardMonitor.startMonitoring()
+            if (item.previewData != nil) {
+                pasteboard.setData(item.previewData!, forType: NSPasteboard.PasteboardType(item.pasteboardType))
+            } else {
+                pasteboard.setString(item.content, forType: .string)
+                clipboardMonitor.startMonitoring()
+            }
         }
     }
 }

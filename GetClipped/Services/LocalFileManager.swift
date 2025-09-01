@@ -5,8 +5,8 @@
 //  Created by Ishan Misra on 8/31/25.
 //
 
-import Foundation
 import AppKit
+import Foundation
 import PDFKit
 
 /// Service that helps read/write files based on ID to local file system
@@ -37,44 +37,33 @@ class LocalFileManager {
         }
     }
     
-    func loadData(fileName: String) async -> Data? {
-        let fileURL = clipboardDirectory.appendingPathComponent(fileName)
+    func loadData(withId id: String, category: ClipboardItem.ClipboardItemCategory) async -> Data? {
+        let fileURL = clipboardDirectory.appendingPathComponent("\(id).\(fileExtension(for: category))")
         return try? Data(contentsOf: fileURL)
     }
     
-    public func generatePreview(from data: Data, category: ClipboardItem.ClipboardItemCategory) -> Data? {
+    func loadUrl(withId id: String, category: ClipboardItem.ClipboardItemCategory) async -> URL? {
+        let fileURL = clipboardDirectory.appendingPathComponent("\(id).\(fileExtension(for: category))")
+        return FileManager.default.fileExists(atPath: fileURL.path) ? fileURL : nil
+    }
+    
+    func generatePreview(from data: Data, category: ClipboardItem.ClipboardItemCategory) -> Data? {
         switch category {
         case .image:
             return generateImagePreview(from: data)
         case .pdf:
-            return generatePdfPreview(from: data, category: category)
+            return generatePdfPreview(from: data)
         default:
             return nil
         }
     }
     
-    private func generatePdfPreview(from data: Data, category: ClipboardItem.ClipboardItemCategory) -> Data? {
-        /// Returns a thumbnail image for PDF items, nil for other types
-        var pdfThumbnail: NSImage? {
-            guard category == .pdf,
-                  let pdfDoc = PDFDocument(data: data),
-                  let firstPage = pdfDoc.page(at: 0) else {
-                return nil
-            }
-            
-            let thumbnailSize = CGSize(width: 200, height: 260) // Typical PDF aspect ratio
-            return firstPage.thumbnail(of: thumbnailSize, for: .mediaBox)
-        }
-        
+    private func generatePdfPreview(from data: Data) -> Data? {
         /// Returns a higher quality PDF thumbnail for larger display
-        var pdfThumbnailLarge: NSImage? {
-            guard category == .pdf,
-                  let pdfDoc = PDFDocument(data: data),
-                  let firstPage = pdfDoc.page(at: 0) else {
-                return nil
-            }
-            
-            let thumbnailSize = CGSize(width: 400, height: 520)
+        var pdfThumbnail: NSImage? {
+            guard let pdfDocument = PDFDocument(data: data),
+                  let firstPage = pdfDocument.page(at: 0) else { return nil }
+            let thumbnailSize = CGSize(width: 800, height: 1040)
             return firstPage.thumbnail(of: thumbnailSize, for: .mediaBox)
         }
         
@@ -97,11 +86,10 @@ class LocalFileManager {
         return thumbnail.tiffRepresentation
     }
 
-    
     private func fileExtension(for category: ClipboardItem.ClipboardItemCategory) -> String {
         switch category {
         case .text: return "txt"
-        case .image: return "img"
+        case .image: return "png"
         case .pdf: return "pdf"
         case .html: return "html"
         default: return "data"
