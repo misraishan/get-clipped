@@ -74,7 +74,7 @@ class ClipboardMonitor: ObservableObject {
     ) async -> ClipboardItem? {
         let urlString: String?
 
-        if type.rawValue == "public.url-name" { // electron apps have its own clipboard type when doing `clipboard.writeBookmark` I think
+        if type.rawValue == "public.url-name" { // electron apps have their own clipboard type when doing `clipboard.writeBookmark` I think
             urlString = pasteboard.string(forType: type)
         } else {
             urlString = pasteboard.string(forType: .string) ?? pasteboard.string(forType: .URL)
