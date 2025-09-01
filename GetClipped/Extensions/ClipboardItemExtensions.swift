@@ -25,7 +25,7 @@ extension ClipboardItem {
             }
         } else if let data = previewData {
             Task {
-                await LocalFileManager.instance.saveData(data, withId: id, category: category).flatMap { url in
+                if let url = await LocalFileManager.instance.saveData(data, withId: id, category: category) {
                     NSWorkspace.shared.open(url)
                 }
             }
