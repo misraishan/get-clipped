@@ -40,7 +40,7 @@ struct ContentView: View {
             .navigationSplitViewStyle(.balanced)
             .toolbar {
                 ToolbarItem {
-                    Button(action: { Task { addItem } }) {
+                    Button(action: { Task { await addItem() } }) {
                         Label("Add Item", systemImage: "plus")
                     }
                 }
