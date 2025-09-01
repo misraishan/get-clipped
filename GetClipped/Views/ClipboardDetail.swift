@@ -108,16 +108,21 @@ struct ClipboardDetail: View {
                     }
 
             case .link:
-                Link(destination: URL(string: item.content) ?? URL(string: "https://www.apple.com")!) {
-                    Text(item.content)
+                if let url = URL(string: item.content), UIApplication.shared.canOpenURL(url) {
+                    Link(destination: url) {
+                        Text(item.content)
+                            .font(.body)
+                            .foregroundColor(.blue)
+                            .underline()
+                            .onTapGesture {
+                                item.openInDefaultApp()
+                            }
+                    }
+                } else {
+                    Text("Invalid link")
                         .font(.body)
-                        .foregroundColor(.blue)
-                        .underline()
-                        .onTapGesture {
-                            item.openInDefaultApp()
-                        }
+                        .foregroundColor(.secondary)
                 }
-
             case .file:
                 Link(destination: URL(fileURLWithPath: item.content)) {
                     Text(item.contentPreviewString ?? item.content)
