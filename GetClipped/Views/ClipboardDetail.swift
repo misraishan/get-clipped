@@ -108,15 +108,12 @@ struct ClipboardDetail: View {
                     }
 
             case .link:
-                if let url = URL(string: item.content), UIApplication.shared.canOpenURL(url) {
+                if let url = URL(string: item.content) {
                     Link(destination: url) {
                         Text(item.content)
                             .font(.body)
                             .foregroundColor(.blue)
                             .underline()
-                            .onTapGesture {
-                                item.openInDefaultApp()
-                            }
                     }
                 } else {
                     Text("Invalid link")
@@ -129,9 +126,6 @@ struct ClipboardDetail: View {
                         .font(.body)
                         .foregroundColor(.blue)
                         .underline()
-                        .onTapGesture {
-                            item.openInDefaultApp()
-                        }
                 }
 
             case .text:
