@@ -44,8 +44,8 @@ class ClipboardActions: ObservableObject {
         if item.hasExternalData {
             if let data = await LocalFileManager.instance.loadData(withId: item.id, category: item.category) {
                 pasteboard.setData(data, forType: NSPasteboard.PasteboardType(item.pasteboardType))
+                clipboardMonitor.startMonitoring()
             }
-            clipboardMonitor.startMonitoring()
             return
         } else {
             if (item.previewData != nil) {
