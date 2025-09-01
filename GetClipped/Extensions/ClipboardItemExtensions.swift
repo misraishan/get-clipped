@@ -5,8 +5,8 @@
 //  Created by Ishan Misra on 8/24/25.
 //
 import Foundation
-import UniformTypeIdentifiers
 import PDFKit
+import UniformTypeIdentifiers
 
 extension ClipboardItem {
     var timeString: String {
@@ -16,19 +16,30 @@ extension ClipboardItem {
         return formatter.string(from: timestamp)
     }
     
-    private func getPdfPreview() -> String {
-        guard let data, let pdfDoc = PDFDocument(data: data) else { return "PDF Document" }
-        return pdfDoc.documentAttributes?[PDFDocumentAttribute.titleAttribute] as? String ?? "PDF Document"
+    // TODO: Complete this function to open files in default apps
+    func openInDefaultApp() {
+        let documentsUrl = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fileUrl = documentsUrl.appendingPathComponent("temp_\(id)").appendingPathExtension(category == .pdf ? "pdf" : "txt")
     }
-
+    
+    var contentPreviewString: String? {
+        switch category {
+        case .text, .link, .html:
+            return content
+        default:
+            return nil
+        }
+    }
 
     var preview: String {
         switch category {
+        case .pdf:
+            return "PDF Document"
         case .image:
             return "Image"
         case .link:
             return "Link to " + content.getLinkPreview
-        case .text, .pdf, .file, .html:
+        case .text, .file, .html:
             return String(content.prefix(50)) + (content.count > 50 ? "..." : "")
         default:
             return "[Unknown]"
@@ -46,15 +57,11 @@ extension ClipboardItem {
         case .pdf:
             return ClipboardItemIcon(icon: "doc.richtext", color: .red)
         case .file:
-            return ClipboardItemIcon(icon: "doc", color: .gray)
+            return ClipboardItemIcon(icon: "folder", color: .gray)
         case .html:
             return ClipboardItemIcon(icon: "globe", color: .orange)
-        case .unknown:
+        default:
             return ClipboardItemIcon(icon: "questionmark.circle", color: .secondary)
         }
-    }
-
-    var itemType: String {
-        return UTType(pasteboardType)?.localizedDescription ?? "Unknown"
     }
 }

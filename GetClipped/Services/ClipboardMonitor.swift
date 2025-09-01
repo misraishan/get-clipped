@@ -45,10 +45,12 @@ class ClipboardMonitor: ObservableObject {
 
         guard let availableTypes = pasteboard.types else { return }
 
-        for type in availableTypes {
-            if let item = createClipboardItem(from: pasteboard, type: type) {
-                saveItemIfNew(item)
-                break // first/most preferred type processed
+            Task {
+                for type in availableTypes {
+                    if let item = await createClipboardItem(from: pasteboard, type: type) {
+                        saveItemIfNew(item)
+                        break // first/most preferred type processed
+                    }
             }
         }
     }
@@ -69,7 +71,7 @@ class ClipboardMonitor: ObservableObject {
         pasteboard: NSPasteboard,
         type: NSPasteboard.PasteboardType,
         timestamp: Date
-    ) -> ClipboardItem? {
+    ) async -> ClipboardItem? {
         let urlString: String?
 
         if type.rawValue == "public.url-name" { // electron apps have its own clipboard type when doing `clipboard.writeBookmark` I think
@@ -80,10 +82,11 @@ class ClipboardMonitor: ObservableObject {
 
         guard let urlStr = urlString, !urlStr.isEmpty else { return nil }
 
-        return ClipboardItem(
+        return await ClipboardItem(
             content: urlStr,
             timestamp: timestamp,
-            pasteboardType: .URL
+            pasteboardType: .URL,
+            category: .link
         )
     }
 
@@ -91,13 +94,14 @@ class ClipboardMonitor: ObservableObject {
         pasteboard: NSPasteboard,
         type: NSPasteboard.PasteboardType,
         timestamp: Date
-    ) -> ClipboardItem? {
+    ) async -> ClipboardItem? {
         guard let string = pasteboard.string(forType: .string), !string.isEmpty else { return nil }
 
-        return ClipboardItem(
+        return await ClipboardItem(
             content: string,
             timestamp: timestamp,
-            pasteboardType: type
+            pasteboardType: type,
+            category: .text
         )
     }
 
@@ -105,7 +109,7 @@ class ClipboardMonitor: ObservableObject {
         pasteboard: NSPasteboard,
         type: NSPasteboard.PasteboardType,
         timestamp: Date
-    ) -> ClipboardItem? {
+    ) async -> ClipboardItem? {
         guard let imageData = pasteboard.data(forType: type) else { return nil }
 
         // Try to get image dimensions for content description
@@ -113,11 +117,12 @@ class ClipboardMonitor: ObservableObject {
         let dimensions = image?.size ?? .zero
         let contentDescription = "Image (\(Int(dimensions.width))×\(Int(dimensions.height)))"
 
-        return ClipboardItem(
+        return await ClipboardItem(
             content: contentDescription,
             timestamp: timestamp,
             pasteboardType: type,
-            data: imageData
+            data: imageData,
+            category: .image
         )
     }
 
@@ -125,14 +130,15 @@ class ClipboardMonitor: ObservableObject {
         pasteboard: NSPasteboard,
         type: NSPasteboard.PasteboardType,
         timestamp: Date
-    ) -> ClipboardItem? {
+    ) async -> ClipboardItem? {
         guard let pdfData = pasteboard.data(forType: .pdf) else { return nil }
 
-        return ClipboardItem(
+        return await ClipboardItem(
             content: "PDF Document",
             timestamp: timestamp,
             pasteboardType: type,
-            data: pdfData
+            data: pdfData,
+            category: .pdf
         )
     }
 
@@ -140,16 +146,17 @@ class ClipboardMonitor: ObservableObject {
         pasteboard: NSPasteboard,
         type: NSPasteboard.PasteboardType,
         timestamp: Date
-    ) -> ClipboardItem? {
+    ) async -> ClipboardItem? {
         guard let data = pasteboard.data(forType: type) else { return nil }
 
         let description = type.rawValue.split(separator: ".").last.map(String.init)?.capitalized ?? "Unknown Data"
 
-        return ClipboardItem(
+        return await ClipboardItem(
             content: description,
             timestamp: timestamp,
             pasteboardType: type,
-            data: data
+            data: data,
+            category: .unknown
         )
     }
 
@@ -157,50 +164,52 @@ class ClipboardMonitor: ObservableObject {
         pasteboard: NSPasteboard,
         type: NSPasteboard.PasteboardType,
         timestamp: Date
-    ) -> ClipboardItem? {
+    ) async -> ClipboardItem? {
         guard let string = pasteboard.string(forType: .fileURL),
               let url = URL(string: string) else { return nil }
 
         let fileName = url.lastPathComponent
         let contentDescription = "File: \(fileName)"
 
-        return ClipboardItem(
+        return await ClipboardItem(
             content: contentDescription,
             timestamp: timestamp,
-            pasteboardType: type
+            pasteboardType: type,
+            data: url.path.data(using: .utf8),
+            category: .file
         )
     }
 
     private func createClipboardItem(
         from pasteboard: NSPasteboard,
         type: NSPasteboard.PasteboardType
-    ) -> ClipboardItem? {
+    ) async -> ClipboardItem? {
         let timestamp = Date()
 
         if isURLType(type) {
-            return createURLClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
+            return await createURLClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
         }
 
         if isTextType(type) {
             if (pasteboard.string(forType: .string)?.isValidURL ?? false) {
-                return createURLClipboardItem(pasteboard: pasteboard, type: NSPasteboard.PasteboardType.URL, timestamp: timestamp)
+                return await createURLClipboardItem(pasteboard: pasteboard, type: NSPasteboard.PasteboardType.URL, timestamp: timestamp)
             }
-            return createTextClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
+            return await createTextClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
         }
 
         if isImageType(type) {
-            return createImageClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
+            return await createImageClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
         }
 
         if type == .pdf {
-            return createPDFClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
+            return await createPDFClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
         }
 
         if type == .fileURL {
-            return createFileURLClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
+            return await createFileURLClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
         }
 
-        return createGenericDataClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
+        return await createGenericDataClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
     }
 
     private func saveItemIfNew(_ newItem: ClipboardItem) {

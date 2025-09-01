@@ -21,22 +21,7 @@ struct MenuBarContentView: Scene {
     var body: some Scene {
         MenuBarExtra("GetClipped", systemImage: "paperclip") {
             Menu {
-                ForEach(Array(mostRecentClipboardItems.prefix(5).enumerated()), id: \.offset) { index, item in
-                    Button(action: {
-                        copyToClipboard(item: item)
-                    }) {
-                        HStack {
-                            Text(item.preview)
-                                .lineLimit(1)
-                            Spacer()
-                            Text(item.timestamp, style: .time)
-                                .foregroundStyle(.secondary)
-                                .font(.caption)
-                        }
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: [.command])
-                }
+                recentItemsList
             } label: {
                 Text("Recent Items")
             }
@@ -69,6 +54,26 @@ struct MenuBarContentView: Scene {
         }
     }
 
+    @ViewBuilder
+    private var recentItemsList: some View {
+        ForEach(Array(mostRecentClipboardItems.prefix(5).enumerated()), id: \.offset) { index, item in
+            Button(action: { Task {
+                await copyToClipboard(item: item)
+            } }) {
+                HStack {
+                    Text(item.preview)
+                        .lineLimit(1)
+                    Spacer()
+                    Text(item.timestamp, style: .time)
+                        .foregroundStyle(.secondary)
+                        .font(.caption)
+                }
+            }
+            .buttonStyle(PlainButtonStyle())
+            .keyboardShortcut(KeyEquivalent(Character("\(index + 1)")), modifiers: [.command])
+        }
+    }
+
     private func openMainWindow() {
         NSApp.activate(ignoringOtherApps: true)
 
@@ -96,7 +101,7 @@ struct MenuBarContentView: Scene {
         }
     }
 
-    private func copyToClipboard(item: ClipboardItem) {
-        clipboardActions?.copyToClipboard(item)
+    private func copyToClipboard(item: ClipboardItem) async {
+        await clipboardActions?.copyToClipboard(item)
     }
 }

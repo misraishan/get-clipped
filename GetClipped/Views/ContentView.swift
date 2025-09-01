@@ -40,7 +40,7 @@ struct ContentView: View {
             .navigationSplitViewStyle(.balanced)
             .toolbar {
                 ToolbarItem {
-                    Button(action: addItem) {
+                    Button(action: { Task { addItem } }) {
                         Label("Add Item", systemImage: "plus")
                     }
                 }
@@ -78,10 +78,8 @@ struct ContentView: View {
         }
     }
 
-    private func addItem() {
-        withAnimation {
-            clipboardActions?.addItem()
-        }
+    private func addItem() async {
+        await clipboardActions?.addItem()
     }
 
     var filteredItems: [ClipboardItem] {

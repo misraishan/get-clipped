@@ -37,16 +37,7 @@ struct ClipboardDetail: View {
                     .font(.subheadline)
                     .fontWeight(.semibold)
 
-//                if item.data != nil, let imageData = clipboardActions.getImage(from: item)?.tiffRepresentation, let nsImage = NSImage(data: imageData) {
-//                    Image(nsImage: nsImage)
-//                        .resizable()
-//                        .scaledToFit()
-//                        .frame(maxHeight: 200)
-//                        .cornerRadius(8)
-//                        .padding(.bottom, 8)
-//                }
-
-                contentPreview(for: item)
+//                contentPreview(for: item)
 
                 ScrollView {
                     Text(item.content)
@@ -66,8 +57,10 @@ struct ClipboardDetail: View {
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
                 HStack(spacing: 8) {
-                    Button(action: async {
-                        await clipboardActions.copyToClipboard(item)
+                    Button(action: {
+                        Task {
+                            await clipboardActions.copyToClipboard(item)
+                        }
                     }) {
                         Label("Copy", systemImage: "doc.on.doc")
                     }
@@ -85,73 +78,51 @@ struct ClipboardDetail: View {
         }
     }
 
-    @ViewBuilder
-    private func contentPreview(for item: ClipboardItem) -> some View {
-        if item.data != nil {
-            switch item.category {
-            case .image:
-                Image(nsImage: NSImage(data: item.data!) ?? NSImage())
-                    .resizable()
-                    .scaledToFit()
-                    .frame(maxHeight: 200)
-                    .cornerRadius(8)
-                    .padding(.bottom, 8)
-                    .onTapGesture {
-                        item.openInDefaultApp()
-                    }
-
-            case .link:
-                Link(destination: URL(string: item.content) ?? URL(string: "https://www.apple.com")!) {
-                    Text(item.content)
-                        .font(.body)
-                        .foregroundColor(.blue)
-                        .underline()
-                        .onTapGesture {
-                            item.openInDefaultApp()
-                        }
-                }
-
-            case .file:
-                Link(destination: URL(fileURLWithPath: item.content)) {
-                    Text(item.contentPreviewString ?? item.content)
-                        .font(.body)
-                        .foregroundColor(.blue)
-                        .underline()
-                        .onTapGesture {
-                            item.openInDefaultApp()
-                        }
-                }
-
-            case .pdf:
-                VStack(alignment: .leading, spacing: 8) {
-                    // Show PDF thumbnail if available
-                    if let thumbnail = item.pdfThumbnail {
-                        Image(nsImage: thumbnail)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 200)
-                            .cornerRadius(8)
-                            .shadow(radius: 2)
-                            .onTapGesture {
-                                item.openInDefaultApp()
-                            }
-                    }
-
-                    // Show PDF title/content preview
-                    Text(item.contentPreviewString ?? "PDF Document")
-                        .font(.body)
-                        .foregroundColor(.primary)
-                }
-
-            default:
-                EmptyView()
-            }
-        }
-    }
-}
-
-#Preview {
-    ClipboardDetail(item: ClipboardItem(
-        content: "Sample clipboard content for preview purposes.", timestamp: Date(), pasteboardType: .string
-    ))
+//    @ViewBuilder
+//    private func contentPreview(for item: ClipboardItem) -> some View {
+//        if (item.hasExternalData && item.previewData == nil) {
+//            Task {
+//                await item.loadData()
+//            }
+//        }
+//        
+//        if item.previewData != nil {
+//            switch item.category {
+//            case .image, .pdf:
+//                Image(nsImage: NSImage(data: await item.loadData()!) ?? NSImage())
+//                    .resizable()
+//                    .scaledToFit()
+//                    .frame(maxHeight: 200)
+//                    .cornerRadius(8)
+//                    .padding(.bottom, 8)
+//                    .onTapGesture {
+//                        item.openInDefaultApp()
+//                    }
+//
+//            case .link:
+//                Link(destination: URL(string: item.content) ?? URL(string: "https://www.apple.com")!) {
+//                    Text(item.content)
+//                        .font(.body)
+//                        .foregroundColor(.blue)
+//                        .underline()
+//                        .onTapGesture {
+//                            item.openInDefaultApp()
+//                        }
+//                }
+//
+//            case .file:
+//                Link(destination: URL(fileURLWithPath: item.content)) {
+//                    Text(item.contentPreviewString ?? item.content)
+//                        .font(.body)
+//                        .foregroundColor(.blue)
+//                        .underline()
+//                        .onTapGesture {
+//                            item.openInDefaultApp()
+//                        }
+//                }
+//            default:
+//                EmptyView()
+//            }
+//        }
+//    }
 }

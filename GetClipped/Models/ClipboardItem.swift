@@ -17,60 +17,58 @@ class ClipboardItem: Identifiable, Hashable {
     var content: String
     var timestamp: Date
     var pasteboardType: String
-    var utType: String?
+    var category: ClipboardItemCategory
 
+    // the following are specific to storing files and not relying
+    // completely on swiftdata
     @Attribute(.externalStorage)
-    var data: Data?
+    var previewData: Data?
+    
+    var fileSize: Int64?
+    var filePath: String?
+    var fileName: String?
 
-    init(content: String = "", timestamp: Date, pasteboardType: NSPasteboard.PasteboardType, data: Data? = nil) {
+    init(content: String = "", timestamp: Date, pasteboardType: NSPasteboard.PasteboardType, data: Data? = nil, category: ClipboardItemCategory = .unknown) async {
         id = UUID().uuidString
 
         self.content = content
         self.timestamp = timestamp
         self.pasteboardType = pasteboardType.rawValue
+        self.category = category
 
-        utType = UTType(pasteboardType.rawValue)?.identifier
-        self.data = data
+        if let data = data, data.count > 1024 * 1024 {
+            self.filePath = await LocalFileManager.instance.saveData(data, withId: id, category: category)?.path
+            self.fileSize = Int64(data.count)
+            
+            if category == .image || category == .pdf {
+                self.previewData = LocalFileManager.instance.generatePreview(from: data, category: category)
+            }
+        }
     }
 
-    // converts the pasteboard string type back to a PasteboardType
+    /// converts the pasteboard string type back to a PasteboardType
     var type: NSPasteboard.PasteboardType {
         return NSPasteboard.PasteboardType(pasteboardType)
     }
 
-    // converts the pasteboard string type back to a category
-    var category: ClipboardItemCategory {
-        guard let utType = utType else { return .text }
-
-        let type = UTType(utType)
-
-        if type?.conforms(to: .url) == true { // url technically conforms to text so put it on top
-            return .link
-        } else if type?.conforms(to: .text) == true {
-            return .text
-        } else if type?.conforms(to: .image) == true {
-            return .image
-        } else if type?.conforms(to: .pdf) == true {
-            return .pdf
-        } else if type?.conforms(to: .data) == true {
-            return .file
-        } else if type?.conforms(to: .html) == true {
-            return .html
-        }
-        return .unknown
-    }
-
-    // human readable description of the pasteboard type
+    /// human readable description of the pasteboard type
     var typeDescription: String {
-        guard let utType = utType else { return "Unknown" }
-
-        let type = UTType(utType)
-
-        print(type?.localizedDescription ?? "Unknown type for \(utType)", pasteboardType)
-        return type?.localizedDescription ?? pasteboardType
+        return category.rawValue
+    }
+    
+    /// Allows for lazy loading of data by fetching preview, and then loading full data from disk if needed
+    func loadData() async -> Data? {
+        if let filePath = filePath {
+            return await LocalFileManager.instance.loadData(fileName: URL(fileURLWithPath: filePath).lastPathComponent)
+        }
+        return previewData
+    }
+    
+    var hasExternalData: Bool {
+        return filePath != nil
     }
 
-    enum ClipboardItemCategory: String, CaseIterable {
+    enum ClipboardItemCategory: String, CaseIterable, Codable, Sendable {
         case text = "Text"
         case image = "Image"
         case pdf = "PDF"

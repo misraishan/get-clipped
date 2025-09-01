@@ -18,8 +18,8 @@ class ClipboardActions: ObservableObject {
         self.modelContext = modelContext
     }
 
-    func addItem(content: String = "New Editable Clipboard Item") {
-        let newItem = ClipboardItem(
+    func addItem(content: String = "New Editable Clipboard Item") async {
+        let newItem = await ClipboardItem(
             content: content,
             timestamp: Date(),
             pasteboardType: .string
@@ -35,24 +35,21 @@ class ClipboardActions: ObservableObject {
         try? modelContext.delete(model: ClipboardItem.self)
     }
 
-    func getImage(from item: ClipboardItem) -> NSImage? {
-        guard item.category == .image,
-              let data = item.data else { return nil }
-        return NSImage(data: data)
-    }
-
-    func copyToClipboard(_ item: ClipboardItem) {
+    func copyToClipboard(_ item: ClipboardItem) async {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
         clipboardMonitor.stopMonitoring()
-
-        if let data = item.data {
-            pasteboard.setData(data, forType: NSPasteboard.PasteboardType(item.pasteboardType))
+        
+        if item.hasExternalData {
+            await LocalFileManager.instance.loadData(fileName: item.fileName!).flatMap { data in
+                pasteboard.setData(data, forType: NSPasteboard.PasteboardType(item.pasteboardType))
+                clipboardMonitor.startMonitoring()
+            }
+            
         } else {
             pasteboard.setString(item.content, forType: .string)
+            clipboardMonitor.startMonitoring()
         }
-
-        clipboardMonitor.startMonitoring()
     }
 }
