@@ -7,16 +7,9 @@
 import Foundation
 import PDFKit
 import UniformTypeIdentifiers
+import TipKit
 
 extension ClipboardItem {
-    var timeString: String {
-        let formatter = DateFormatter()
-        formatter.timeStyle = .short
-        formatter.dateStyle = .none
-        return formatter.string(from: timestamp)
-    }
-    
-    // TODO: Complete this function to open files in default apps
     func openInDefaultApp() {
         if hasExternalData {
             Task {
@@ -31,6 +24,27 @@ extension ClipboardItem {
             }
         } else {
             print("No external data to open for item with id: \(id)")
+        }
+    }
+    
+    func revealInFinder() async {
+        if category == .file && filePath != nil {
+            let url = URL(fileURLWithPath: filePath!)
+            NSWorkspace.shared.activateFileViewerSelecting([url])
+            return
+        }
+
+        if hasExternalData {
+            
+                let url = await LocalFileManager.instance.loadUrl(withId: id, category: category)
+                NSWorkspace.shared.activateFileViewerSelecting([url!])
+            
+        } else if let data = previewData {
+            
+                if let url = await LocalFileManager.instance.saveData(data, withId: id, category: category) {
+                    NSWorkspace.shared.activateFileViewerSelecting([url])
+                }
+            
         }
     }
     
@@ -75,5 +89,19 @@ extension ClipboardItem {
         default:
             return ClipboardItemIcon(icon: "questionmark.circle", color: .secondary)
         }
+    }
+    
+    var timeString: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        return formatter.string(from: timestamp)
+    }
+    
+    var dateTimeString: String {
+        let formatter = DateFormatter()
+        formatter.timeStyle = .medium
+        formatter.dateStyle = .medium
+        return formatter.string(from: timestamp)
     }
 }

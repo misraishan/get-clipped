@@ -12,26 +12,34 @@ struct ClipboardItemRow: View {
     let isSelected: Bool
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: 14) {
             ClipboardItemIconView(item: item.icon)
-            VStack(alignment: .leading, spacing: 4) {
+                .frame(width: 18, height: 18)
+                .foregroundColor(.accentColor)
+
+            VStack(alignment: .leading, spacing: 6) {
+                // preview
                 Text(item.preview)
                     .lineLimit(2)
                     .truncationMode(.tail)
                     .font(.body)
+                    .foregroundColor(.primary)
 
-                Text(item.timeString)
+                // metadata
+                Text(item.dateTimeString)
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
 
-            Spacer()
+            Spacer(minLength: 0)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 8)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(isSelected ? Color.accentColor.opacity(0.5) : Color.clear)
-        .cornerRadius(8)
-        .animation(.easeInOut(duration: 0.15), value: isSelected)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(isSelected ? Color.accentColor.opacity(0.4) : Color.clear)
+        )
+        .contentShape(Rectangle())
+        .animation(.easeInOut(duration: 0.2), value: isSelected)
     }
 }

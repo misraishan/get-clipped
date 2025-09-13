@@ -22,7 +22,12 @@ extension String {
 
     var getLinkPreview: String {
         if isValidURL {
-            return components(separatedBy: ".")[1].capitalized
+            let cleanedLink = self.replacingOccurrences(of: "http://", with: "").replacingOccurrences(of: "https://", with: "")
+            let linkComponents = cleanedLink.components(separatedBy: ".")
+            if linkComponents.contains("www") {
+                return linkComponents[1].capitalized
+            }
+            return linkComponents[0].capitalized
         }
         return self
     }

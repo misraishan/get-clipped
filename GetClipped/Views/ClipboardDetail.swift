@@ -19,9 +19,9 @@ struct ClipboardDetail: View {
                     .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.category.rawValue.capitalized + " Item")
+                    Text(item.category.rawValue.capitalized)
                         .font(.headline)
-                    Text("Copied at \(item.timeString)")
+                    Text("Copied at \(item.dateTimeString)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
