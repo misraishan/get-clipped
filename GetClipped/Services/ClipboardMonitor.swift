@@ -8,7 +8,7 @@
 import AppKit
 import Foundation
 import SwiftData
-import SwiftUICore
+import SwiftUI
 import UniformTypeIdentifiers
 
 class ClipboardMonitor: ObservableObject {
