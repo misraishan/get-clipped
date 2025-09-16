@@ -8,7 +8,7 @@
 import AppKit
 import Foundation
 import SwiftData
-import SwiftUICore
+import SwiftUI
 import UniformTypeIdentifiers
 
 @Model
@@ -16,6 +16,7 @@ class ClipboardItem: Identifiable, Hashable {
     var id: String
     /// Acts as metadata if no previewdata or file is stored
     var content: String
+    /// Copied at time
     var timestamp: Date
     var pasteboardType: String
     var category: ClipboardItemCategory

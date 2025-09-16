@@ -5,11 +5,20 @@
 //  Created by Ishan Misra on 8/23/25.
 //
 
+import FoundationModels
 import SwiftUI
+import VisionKit
 
+@available(macOS 26.0, *)
 struct ClipboardDetail: View {
     let item: ClipboardItem
     @EnvironmentObject var clipboardActions: ClipboardActions
+
+    @State private var showingImageDetail = false
+    @State var summarizedText: String?
+    @State var loadingSummary = false
+    @State var contentTags: [String] = []
+    @State var loadingTags = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -48,11 +57,47 @@ struct ClipboardDetail: View {
                         .cornerRadius(8)
                 }
                 .frame(maxHeight: 1024)
+                Divider()
+                HStack {
+                    Spacer()
 
-                if item.previewData != nil {
-                    Divider()
-                    HStack {
-                        Spacer()
+                    if item.category == .text {
+                        Button(action: {
+                            Task {
+                                loadingSummary = true
+                                summarizedText = try? await ClipboardAiActions.shared.summarizeText(item.content)
+                                loadingSummary = false
+
+                                print("Debug print for item: ", item)
+                            }
+                        }) {
+                            Label("Generate AI Summary", systemImage: "doc.plaintext")
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button(action: {
+                            Task {
+                                loadingTags = true
+                                contentTags = try await ClipboardAiActions.shared.createTags(item.content)
+                                loadingTags = false
+                            }
+                        }) {
+                            Label("Generate Tags", systemImage: "tag")
+                        }
+                        .buttonStyle(.bordered)
+                    }
+
+                    if item.previewData != nil {
+                        if item.category == .file {
+                            Button(action: {
+                                Task {
+                                    await item.revealInFinder()
+                                }
+                            }) {
+                                Label("Show in Finder", systemImage: "folder")
+                            }
+                            .buttonStyle(.bordered)
+                        }
 
                         Button(action: {
                             item.openInDefaultApp()
@@ -61,6 +106,49 @@ struct ClipboardDetail: View {
                         }
                         .buttonStyle(.bordered)
                     }
+                }
+
+                if summarizedText != nil {
+                    Divider()
+
+                    Text("Clanker Summary")
+                        .font(Font.headline.bold())
+
+                    Text(summarizedText ?? "")
+                        .font(.body)
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(NSColor.textBackgroundColor))
+                        .cornerRadius(8)
+                }
+
+                if loadingSummary {
+                    ProgressView("Generating Summary...")
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .padding(.top, 8)
+                }
+
+                if !contentTags.isEmpty {
+                    Divider()
+
+                    Text("Clanker Tags")
+                        .font(Font.headline.bold())
+
+                    HStack {
+                        ForEach(contentTags, id: \.self) { tag in
+                            Text(tag)
+                                .font(.caption)
+                                .padding(6)
+                                .background(Color.accentColor.opacity(0.2))
+                                .cornerRadius(6)
+                        }
+                    }
+                }
+
+                if loadingTags {
+                    ProgressView("Generating Tags...")
+                        .progressViewStyle(CircularProgressViewStyle())
+                        .padding(.top, 8)
                 }
             }
 
@@ -120,6 +208,7 @@ struct ClipboardDetail: View {
                         .font(.body)
                         .foregroundColor(.secondary)
                 }
+
             case .file:
                 Link(destination: URL(fileURLWithPath: item.content)) {
                     Text(item.contentPreviewString ?? item.content)
