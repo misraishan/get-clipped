@@ -9,16 +9,10 @@ import FoundationModels
 import SwiftUI
 import VisionKit
 
-@available(macOS 26.0, *)
 struct ClipboardDetail: View {
     let item: ClipboardItem
     @EnvironmentObject var clipboardActions: ClipboardActions
-
     @State private var showingImageDetail = false
-    @State var summarizedText: String?
-    @State var loadingSummary = false
-    @State var contentTags: [String] = []
-    @State var loadingTags = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -43,8 +37,15 @@ struct ClipboardDetail: View {
             // Content section
             VStack(alignment: .leading, spacing: 8) {
                 Text("Content")
-                    .font(.subheadline)
+                    .font(.largeTitle)
                     .fontWeight(.semibold)
+                if item.isCode != nil && item.isCode == true {
+                    Text("Detected as Code Snippet \(item.codeLanguage != nil ? "(\(item.codeLanguage!.capitalized))" : "")")
+                        .font(.caption)
+                        .padding(4)
+                        .background(Color.yellow.opacity(0.2))
+                        .cornerRadius(4)
+                }
 
                 contentPreview(for: item)
 
@@ -60,32 +61,6 @@ struct ClipboardDetail: View {
                 Divider()
                 HStack {
                     Spacer()
-
-                    if item.category == .text {
-                        Button(action: {
-                            Task {
-                                loadingSummary = true
-                                summarizedText = try? await ClipboardAiActions.shared.summarizeText(item.content)
-                                loadingSummary = false
-
-                                print("Debug print for item: ", item)
-                            }
-                        }) {
-                            Label("Generate AI Summary", systemImage: "doc.plaintext")
-                        }
-                        .buttonStyle(.bordered)
-
-                        Button(action: {
-                            Task {
-                                loadingTags = true
-                                contentTags = try await ClipboardAiActions.shared.createTags(item.content)
-                                loadingTags = false
-                            }
-                        }) {
-                            Label("Generate Tags", systemImage: "tag")
-                        }
-                        .buttonStyle(.bordered)
-                    }
 
                     if item.previewData != nil {
                         if item.category == .file {
@@ -108,13 +83,13 @@ struct ClipboardDetail: View {
                     }
                 }
 
-                if summarizedText != nil {
+                if item.summary != nil {
                     Divider()
 
                     Text("Clanker Summary")
                         .font(Font.headline.bold())
 
-                    Text(summarizedText ?? "")
+                    Text(item.summary ?? "")
                         .font(.body)
                         .padding(8)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -122,20 +97,14 @@ struct ClipboardDetail: View {
                         .cornerRadius(8)
                 }
 
-                if loadingSummary {
-                    ProgressView("Generating Summary...")
-                        .progressViewStyle(CircularProgressViewStyle())
-                        .padding(.top, 8)
-                }
-
-                if !contentTags.isEmpty {
+                if item.tags != nil && !item.tags!.isEmpty {
                     Divider()
 
                     Text("Clanker Tags")
                         .font(Font.headline.bold())
 
                     HStack {
-                        ForEach(contentTags, id: \.self) { tag in
+                        ForEach(item.tags!, id: \.self) { tag in
                             Text(tag)
                                 .font(.caption)
                                 .padding(6)
@@ -143,12 +112,6 @@ struct ClipboardDetail: View {
                                 .cornerRadius(6)
                         }
                     }
-                }
-
-                if loadingTags {
-                    ProgressView("Generating Tags...")
-                        .progressViewStyle(CircularProgressViewStyle())
-                        .padding(.top, 8)
                 }
             }
 

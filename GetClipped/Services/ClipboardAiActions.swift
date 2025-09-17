@@ -8,14 +8,17 @@
 import FoundationModels
 import SwiftUI
 
-@available(macOS 26.0, *)
-class ClipboardAiActions {
+class ClipboardAiActions: @unchecked Sendable {
     static let shared = ClipboardAiActions()
     let taggingModel = SystemLanguageModel(useCase: .contentTagging)
     let generalModel = SystemLanguageModel.default
     
     @Generable struct ContentTags: Codable {
         var tags: [String]
+    }
+    
+    @Generable struct CodeLanguageDetection: Codable {
+        var language: String? = nil
     }
     
     private init() {}
@@ -41,4 +44,18 @@ class ClipboardAiActions {
         let response = try await session.respond(to: prompt, generating: ContentTags.self, includeSchemaInPrompt: false, options: options)
         return response.content.tags
      }
+    
+    func detectCodingLanguage(_ codeSnippet: String) async throws -> String? {
+        let session = LanguageModelSession(model: taggingModel)
+        let options = GenerationOptions(
+            sampling: .greedy,
+            temperature: 0.8,
+            maximumResponseTokens: 200
+        )
+        
+        let prompt = "Determine if the following text is a coding language. If it is, specify which language it is written in (such as Swift, JavaScript, C#, etc.):\n\n\(codeSnippet)"
+        
+        let response = try await session.respond(to: prompt, generating: CodeLanguageDetection.self, includeSchemaInPrompt: false, options: options)
+        return response.content.language ?? nil
+    }
 }

@@ -26,9 +26,16 @@ class ClipboardItem: Identifiable, Hashable {
     @Attribute(.externalStorage)
     var previewData: Data?
 
+    // metadata about external file if any
     var fileSize: Int64?
     var filePath: String?
     var fileName: String?
+    
+    // AI Tagging and such
+    var tags: [String]?
+    var summary: String?
+    var isCode: Bool? = false
+    var codeLanguage: String?
 
     init(content: String = "", timestamp: Date, pasteboardType: NSPasteboard.PasteboardType, data: Data? = nil, category: ClipboardItemCategory = .unknown) async {
         self.id = UUID().uuidString

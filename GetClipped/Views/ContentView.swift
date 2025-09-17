@@ -8,7 +8,6 @@
 import SwiftData
 import SwiftUI
 
-@available(macOS 26.0, *)
 struct ContentView: View {
     @Environment(\.modelContext) private var modelContext
 
@@ -167,10 +166,6 @@ struct ContentView: View {
 }
 
 #Preview {
-    if #available(macOS 26.0, *) {
-        ContentView()
-            .modelContainer(for: ClipboardItem.self)
-    } else {
-        Text("Upgrade to macOS 26 to preview this view")
-    }
+    ContentView()
+        .modelContainer(for: ClipboardItem.self)
 }

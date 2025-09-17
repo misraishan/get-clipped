@@ -8,7 +8,6 @@
 import SwiftData
 import SwiftUI
 
-@available(macOS 26.0, *)
 @main
 struct GetClippedApp: App {
     var sharedModelContainer: ModelContainer = {

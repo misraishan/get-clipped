@@ -13,7 +13,7 @@ import UniformTypeIdentifiers
 
 class ClipboardMonitor: ObservableObject {
     static var shared: ClipboardMonitor?
-    
+
     private let modelContext: ModelContext
 
     private var timer: Timer?
@@ -23,7 +23,7 @@ class ClipboardMonitor: ObservableObject {
         self.modelContext = modelContext
         startMonitoring()
     }
-    
+
     static func initialize(with modelContext: ModelContext) {
         shared = ClipboardMonitor(modelContext: modelContext)
     }
@@ -51,12 +51,12 @@ class ClipboardMonitor: ObservableObject {
 
         guard let availableTypes = pasteboard.types else { return }
 
-            Task {
-                for type in availableTypes {
-                    if let item = await createClipboardItem(from: pasteboard, type: type) {
-                        saveItemIfNew(item)
-                        break // first/most preferred type processed
-                    }
+        Task {
+            for type in availableTypes {
+                if let item = await createClipboardItem(from: pasteboard, type: type) {
+                    saveItemIfNew(item)
+                    break // first/most preferred type processed
+                }
             }
         }
     }
@@ -102,10 +102,10 @@ class ClipboardMonitor: ObservableObject {
         timestamp: Date
     ) async -> ClipboardItem? {
         guard let string = pasteboard.string(forType: .string), !string.isEmpty else { return nil }
-        
+
         var data: Data?
         var contentString: String
-        
+
         if string.count > 1000 {
             data = string.data(using: .utf8)
             contentString = string.prefix(1000) + "..." // truncate for display if too long
@@ -208,7 +208,7 @@ class ClipboardMonitor: ObservableObject {
         }
 
         if isTextType(type) {
-            if (pasteboard.string(forType: .string)?.isValidURL ?? false) {
+            if pasteboard.string(forType: .string)?.isValidURL ?? false {
                 return await createURLClipboardItem(pasteboard: pasteboard, type: NSPasteboard.PasteboardType.URL, timestamp: timestamp)
             }
             return await createTextClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
@@ -227,6 +227,32 @@ class ClipboardMonitor: ObservableObject {
         }
 
         return await createGenericDataClipboardItem(pasteboard: pasteboard, type: type, timestamp: timestamp)
+    }
+
+    private func doClankerStuff(item: ClipboardItem) {
+        var persistantId = item.persistentModelID
+        let modelContextContainer = modelContext.container
+
+        Task.detached(priority: .medium) {
+            print("Doing background AI work for item id: \(item.id)")
+            let backgroundContext = ModelContext(modelContextContainer)
+
+            guard let backgroundItem = backgroundContext.model(for: persistantId) as? ClipboardItem
+            else { return }
+
+            print("Found item in background context, doing AI work...")
+            let tags = try? await ClipboardAiActions.shared.createTags(item.content)
+            let summary = try? await ClipboardAiActions.shared.summarizeText(item.content)
+            let codingLanguage = try? await ClipboardAiActions.shared.detectCodingLanguage(item.content)
+
+            print("AI work done, updating item in background context... \(tags ?? []), \(summary ?? "no summary"), \(codingLanguage ?? "no code lang")")
+            backgroundItem.tags = tags
+            backgroundItem.summary = summary
+            backgroundItem.isCode = codingLanguage != nil
+            backgroundItem.codeLanguage = codingLanguage
+            
+            try? backgroundContext.save()
+        }
     }
 
     private func saveItemIfNew(_ newItem: ClipboardItem) {
@@ -250,6 +276,9 @@ class ClipboardMonitor: ObservableObject {
             if existingItems.isEmpty {
                 modelContext.insert(newItem)
                 try modelContext.save()
+                if newItem.category == .text {
+                    doClankerStuff(item: newItem)
+                }
             }
         } catch {
             print("Error checking/saving clipboard item: \(error)")
