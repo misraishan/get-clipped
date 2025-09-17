@@ -30,6 +30,11 @@ struct GetClippedApp: App {
 
         WindowGroup("GetClipped", id: "main") {
             ContentView()
+            .onAppear {
+                let container = sharedModelContainer
+                let context = ModelContext(container)
+                ClipboardMonitor.initialize(with: context)
+            }
         }
         .windowResizability(.contentSize)
         .modelContainer(sharedModelContainer)

@@ -5,11 +5,14 @@
 //  Created by Ishan Misra on 8/23/25.
 //
 
+import FoundationModels
 import SwiftUI
+import VisionKit
 
 struct ClipboardDetail: View {
     let item: ClipboardItem
     @EnvironmentObject var clipboardActions: ClipboardActions
+    @State private var showingImageDetail = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -19,9 +22,9 @@ struct ClipboardDetail: View {
                     .frame(width: 40, height: 40)
 
                 VStack(alignment: .leading, spacing: 2) {
-                    Text(item.category.rawValue.capitalized + " Item")
+                    Text(item.category.rawValue.capitalized)
                         .font(.headline)
-                    Text("Copied at \(item.timeString)")
+                    Text("Copied at \(item.dateTimeString)")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -34,8 +37,15 @@ struct ClipboardDetail: View {
             // Content section
             VStack(alignment: .leading, spacing: 8) {
                 Text("Content")
-                    .font(.subheadline)
+                    .font(.largeTitle)
                     .fontWeight(.semibold)
+                if item.isCode != nil && item.isCode == true {
+                    Text("Detected as Code Snippet \(item.codeLanguage != nil ? "(\(item.codeLanguage!.capitalized))" : "")")
+                        .font(.caption)
+                        .padding(4)
+                        .background(Color.yellow.opacity(0.2))
+                        .cornerRadius(4)
+                }
 
                 contentPreview(for: item)
 
@@ -48,11 +58,21 @@ struct ClipboardDetail: View {
                         .cornerRadius(8)
                 }
                 .frame(maxHeight: 1024)
+                Divider()
+                HStack {
+                    Spacer()
 
-                if item.previewData != nil {
-                    Divider()
-                    HStack {
-                        Spacer()
+                    if item.previewData != nil {
+                        if item.category == .file {
+                            Button(action: {
+                                Task {
+                                    await item.revealInFinder()
+                                }
+                            }) {
+                                Label("Show in Finder", systemImage: "folder")
+                            }
+                            .buttonStyle(.bordered)
+                        }
 
                         Button(action: {
                             item.openInDefaultApp()
@@ -60,6 +80,37 @@ struct ClipboardDetail: View {
                             Label("Open", systemImage: "arrow.up.right.square")
                         }
                         .buttonStyle(.bordered)
+                    }
+                }
+
+                if item.summary != nil {
+                    Divider()
+
+                    Text("Clanker Summary")
+                        .font(Font.headline.bold())
+
+                    Text(item.summary ?? "")
+                        .font(.body)
+                        .padding(8)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Color(NSColor.textBackgroundColor))
+                        .cornerRadius(8)
+                }
+
+                if item.tags != nil && !item.tags!.isEmpty {
+                    Divider()
+
+                    Text("Clanker Tags")
+                        .font(Font.headline.bold())
+
+                    HStack {
+                        ForEach(item.tags!, id: \.self) { tag in
+                            Text(tag)
+                                .font(.caption)
+                                .padding(6)
+                                .background(Color.accentColor.opacity(0.2))
+                                .cornerRadius(6)
+                        }
                     }
                 }
             }
@@ -120,6 +171,7 @@ struct ClipboardDetail: View {
                         .font(.body)
                         .foregroundColor(.secondary)
                 }
+
             case .file:
                 Link(destination: URL(fileURLWithPath: item.content)) {
                     Text(item.contentPreviewString ?? item.content)

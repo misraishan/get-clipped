@@ -10,12 +10,14 @@ import Foundation
 import SwiftData
 
 class ClipboardActions: ObservableObject {
-    var clipboardMonitor: ClipboardMonitor
     private let modelContext: ModelContext
 
-    init(clipboardMonitor: ClipboardMonitor, modelContext: ModelContext) {
-        self.clipboardMonitor = clipboardMonitor
+    init(modelContext: ModelContext) {
         self.modelContext = modelContext
+    }
+    
+    private var clipboardMonitor: ClipboardMonitor? {
+        return ClipboardMonitor.shared
     }
 
     func addItem(content: String = "New Editable Clipboard Item") async {
@@ -39,12 +41,12 @@ class ClipboardActions: ObservableObject {
         let pasteboard = NSPasteboard.general
         pasteboard.clearContents()
 
-        clipboardMonitor.stopMonitoring()
+        clipboardMonitor?.stopMonitoring()
         
         if item.hasExternalData {
             if let data = await LocalFileManager.instance.loadData(withId: item.id, category: item.category) {
                 pasteboard.setData(data, forType: NSPasteboard.PasteboardType(item.pasteboardType))
-                clipboardMonitor.startMonitoring()
+                clipboardMonitor?.startMonitoring()
             }
             return
         } else {
@@ -52,7 +54,7 @@ class ClipboardActions: ObservableObject {
                 pasteboard.setData(item.previewData!, forType: NSPasteboard.PasteboardType(item.pasteboardType))
             } else {
                 pasteboard.setString(item.content, forType: .string)
-                clipboardMonitor.startMonitoring()
+                clipboardMonitor?.startMonitoring()
             }
         }
     }

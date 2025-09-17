@@ -8,7 +8,7 @@
 import AppKit
 import Foundation
 import SwiftData
-import SwiftUICore
+import SwiftUI
 import UniformTypeIdentifiers
 
 @Model
@@ -16,6 +16,7 @@ class ClipboardItem: Identifiable, Hashable {
     var id: String
     /// Acts as metadata if no previewdata or file is stored
     var content: String
+    /// Copied at time
     var timestamp: Date
     var pasteboardType: String
     var category: ClipboardItemCategory
@@ -25,9 +26,16 @@ class ClipboardItem: Identifiable, Hashable {
     @Attribute(.externalStorage)
     var previewData: Data?
 
+    // metadata about external file if any
     var fileSize: Int64?
     var filePath: String?
     var fileName: String?
+    
+    // AI Tagging and such
+    var tags: [String]?
+    var summary: String?
+    var isCode: Bool? = false
+    var codeLanguage: String?
 
     init(content: String = "", timestamp: Date, pasteboardType: NSPasteboard.PasteboardType, data: Data? = nil, category: ClipboardItemCategory = .unknown) async {
         self.id = UUID().uuidString
